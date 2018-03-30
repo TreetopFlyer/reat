@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="UTF-8">
+
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-cookies.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-animate.js"></script>
+        <script src="ngDrag.js"></script>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+
+        <div class="Slides">
+            <h2>Begin your test</h2>
+            <p>Please have your headphones and plugs ready</p>
+        </div>
+        
+        <div class="Slide">
+            <h2>Low Frequency Test</h2>
+            <p>adjust both sliders until you can no longer hear their tone.</p>
+        </div>
+        
+        <div class="Slide">
+            <h2>High Frequency Test</h2>
+            <p>adjust both sliders until you can no longer hear their tone.</p>
+        </div>
+        
+        <div class="Slide">
+            <h2></h2>
+        </div>
+
+        <div ng-app="App" ng-controller="Controller" ng-cloak>
+
+            <div class="Test"
+            ng-class="{'Active':Test.Active}"
+            ng-repeat="Test in Tests track by $index">
+
+
+                <div class="Icon" ng-class="{'Right':(Test.Pan>0), 'High':(Test.Frequency>1000), 'Initialized':Test.Initialized}"></div>
+                <div class="Slider Interactive"
+                ng-drag
+                ng-drag-move="Test.HandlerDrag"
+                ng-drag-start="Test.HandlerStart"
+                ng-drag-stop="Test.HandlerStop">
+                    <div class="Bar" style="width:{{Test.DB*100}}%;"></div>
+                </div>
+            
+            </div>
+
+            <span>{{Iterations}}</span>
+        </div>
+
+<script>
+
+
+
+</script>
+
+        <script>
+            angular
+            .module("App", ["ngDrag"])
+            .factory("Tone", [function()
+            {
+                var Tone = {};
+                Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
+                Tone.Time = {
+                    Timer:0,
+                    Counter:0,
+                    Update: function()
+                    {
+                        switch(Tone.Time.Counter)
+                        {
+                            case 0:
+                                Tone.GainBeep.gain.value = 1;
+                                break;
+                            case 1:
+                                Tone.GainBeep.gain.value = 0;
+                                break;
+                            default:
+                                Tone.Time.Counter = -1;
+                        }
+                        Tone.Time.Counter++;
+                    },
+                    Reset: function()
+                    {
+                        Tone.GainBeep.gain.value = 0;
+                        Tone.Time.Counter = 0;
+                    },
+                    Start: function()
+                    {
+                        Tone.Time.Reset();
+                        Tone.Time.Timer = setInterval(Tone.Time.Update, 100);
+                    },
+                    Stop: function()
+                    {
+                        clearInterval(Tone.Time.Timer);
+                        Tone.Time.Reset();
+                    }
+                };
+
+                Tone.Setup = function(inFrequency, inPan, inDB)
+                {
+                    Tone.GainBeep = Tone.Context.createGain();
+                    Tone.GainBeep.gain.value = 0;
+                    Tone.GainDB = Tone.Context.createGain();
+                    Tone.Panner = Tone.Context.createStereoPanner();
+                    Tone.Oscillator = Tone.Context.createOscillator();
+                    Tone.Oscillator.start();
+
+                    Tone.Oscillator.connect(Tone.GainDB);
+                    Tone.GainDB.connect(Tone.GainBeep);
+                    Tone.GainBeep.connect(Tone.Panner);
+                    Tone.Panner.connect(Tone.Context.destination);
+
+                    Tone.Oscillator.frequency.value = inFrequency;
+                    Tone.Panner.pan.value = inPan;
+                    Tone.Fade(inDB);
+                };
+                Tone.Fade = function(inDB)
+                {
+                    Tone.GainDB.gain.value = inDB*0.01;
+                };
+
+                return Tone;
+            }])
+            .factory("Test", ["Tone", function(Tone)
+            {
+                var obj = {};
+                obj.Create = function(inFrequency, inPan, inDB)
+                {
+                    var test = {
+                        Frequency:inFrequency,
+                        Pan:inPan,
+                        DB:inDB,
+                        Active: false,
+                        Initialized: false
+                    };
+
+                    test.HandlerDrag = function(inPos)
+                    {
+                        test.DB = (Math.ceil(inPos.x*20))/20;
+                        Tone.Fade(test.DB);
+                    };
+                    test.HandlerStart = function()
+                    {
+                        test.Initialized = true;
+                        Tone.Setup(test.Frequency, test.Pan, test.DB);
+                        Tone.Time.Start();
+                        test.Active = true;
+                    };
+                    test.HandlerStop = function()
+                    {
+                        Tone.Time.Stop();
+                        test.Active = false;
+                    };
+
+                    return test;
+                };
+                return obj;
+            }])
+            .controller("Controller", ["$scope", "Test", function($scope, Test)
+            {
+                $scope.Tests = [];
+                $scope.Tests.push(Test.Create(4000, 1, 0.5));
+                $scope.Tests.push(Test.Create(4000, -1, 0.5));
+                $scope.Tests.push(Test.Create(250, 1, 0.5));
+                $scope.Tests.push(Test.Create(250, -1, 0.5));
+            }]);
+        </script>
+    </body>
+</html>
