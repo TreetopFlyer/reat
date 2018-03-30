@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    </head>
+    <body>
+        <div id="App" v-on:move="Volume=$event.x">
+            <div>
+                <div v-slider="Volume" style="width:500px; height:2000px; background:#FA0;"></div>
+            </div>
+        </div>
+        <script>
+            var Lerp = {
+                Get: function(inMin, inAmount, inMax)
+                {
+                    return (inAmount - inMin)/(inMax - inMin);
+                },
+                Set: function(inMin, inAmount, inMax)
+                {
+                    return inMin + inAmount*(inMax - inMin);
+                },
+                Clip: function(inMin, inAmount, inMax)
+                {
+                    if(inAmount < inMin)
+                    {
+                        return inMin;
+                    }
+                    if(inAmount > inMax)
+                    {
+                        return inMax;
+                    }
+                    return inAmount;
+                }
+            }
+        </script>
+        <script>
+            Vue.directive('slider', {
+                twoWay: true,
+                bind: function(inElement, inBinding, inNode)
+                {
+                    console.log(inElement);
+                    console.log(inBinding);
+                    
+                    function handlerMove($event)
+                    {
+                        //coords of AABB within browser window
+                        var rect = inElement.getBoundingClientRect();
+                        var locX = $event.clientX || $event.touches[0].clientX;
+                        var locY = $event.clientX || $event.touches[0].clientY;
+        
+                        //$event.client is the coords of the mouse within the browser window
+                        var mouseRect = {
+                            x:Lerp.Clip(0, locX - rect.left, rect.width),
+                            y:Lerp.Clip(0, locY - rect.top, rect.height)
+                        };
+            
+                        var mouseRelative = {
+                            x:mouseRect.x/rect.width,
+                            y:mouseRect.y/rect.height
+                        };
+                        
+                        console.log("Drag ", mouseRelative);
+                        inNode.context.$emit("move", mouseRelative);
+                    };
+            
+                    function handlerDown($event)
+                    {
+                        $event.preventDefault();
+                        document.addEventListener("mousemove", handlerMove);
+                        document.addEventListener("mouseup", handlerUp);
+            
+                        document.addEventListener("touchmove", handlerMove);
+                        document.addEventListener("touchend", handlerUp);
+            
+                        handlerMove($event);
+                        
+                        console.log("Drag Start");
+                        
+                    };
+            
+                    function handlerUp($event)
+                    {
+                        document.removeEventListener("mousemove", handlerMove);
+                        document.removeEventListener("mouseup", handlerUp);
+            
+                        document.removeEventListener("touchmove", handlerMove);
+                        document.removeEventListener("touchend", handlerUp);
+            
+                        console.log("Drag Stop");
+                    };
+                    
+                    inElement.addEventListener("mousedown", handlerDown);
+                    inElement.addEventListener("touchstart", handlerDown);
+                }
+            });
+            var App = new Vue({
+                el:"#App",
+                data:{
+                    Volume:3
+                }
+            });
+        </script>
+    </body>
+</html>
