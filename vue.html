@@ -4,10 +4,8 @@
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
     </head>
     <body>
-        <div id="App" v-on:move="Volume=$event.x">
-            <div>
-                <div v-slider="Volume" style="width:500px; height:2000px; background:#FA0;"></div>
-            </div>
+        <div id="App">
+            <tone v-on:move="Volume=$event"></tone>
         </div>
         <script>
             var Lerp = {
@@ -35,7 +33,6 @@
         </script>
         <script>
             Vue.directive('slider', {
-                twoWay: true,
                 bind: function(inElement, inBinding, inNode)
                 {
                     console.log(inElement);
@@ -59,8 +56,9 @@
                             y:mouseRect.y/rect.height
                         };
                         
-                        console.log("Drag ", mouseRelative);
-                        inNode.context.$emit("move", mouseRelative);
+                        //console.log("Drag ", mouseRelative);
+                        inNode.context[inBinding.expression] = mouseRelative;
+                        inNode.context.$emit("move", mouseRelative.x);
                     };
             
                     function handlerDown($event)
@@ -92,6 +90,30 @@
                     inElement.addEventListener("mousedown", handlerDown);
                     inElement.addEventListener("touchstart", handlerDown);
                 }
+            });
+            Vue.component('tone', {
+                props:['value'],
+                data: function()
+                {
+                    return {
+                        test:{x:1, y:1}
+                    };
+                },
+                methods:{
+                    alert:function(){alert("hey");}
+                },
+                computed:{
+
+                        style:function()
+                        {
+                            return {
+                                width: (this.test.x*100)+"%",
+                                height:"100%",
+                                background:"#F00"
+                            };
+                        }
+                },
+                template:'<div v-slider="test" style="width:500px; height:2000px; background:#FA0;"><div v-bind:style="style"></div></div>'
             });
             var App = new Vue({
                 el:"#App",
