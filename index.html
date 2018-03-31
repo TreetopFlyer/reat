@@ -14,26 +14,31 @@
     </head>
     <body>
 
-        <div class="Slides">
-            <h2>Begin your test</h2>
-            <p>Please have your headphones and plugs ready</p>
-        </div>
-        
-        <div class="Slide">
-            <h2>Low Frequency Test</h2>
-            <p>adjust both sliders until you can no longer hear their tone.</p>
-        </div>
-        
-        <div class="Slide">
-            <h2>High Frequency Test</h2>
-            <p>adjust both sliders until you can no longer hear their tone.</p>
-        </div>
-        
-        <div class="Slide">
-            <h2></h2>
-        </div>
+
 
         <div ng-app="App" ng-controller="Controller" ng-cloak>
+            
+            <div class="Slideshow" style="left:{{-Slide*100}}%">
+               <div class="Slide" ng-click="Slide = 1">
+                    <h2>Begin your test</h2>
+                    <p>Please have your headphones and plugs ready</p>
+                </div>
+                
+                <div class="Slide" ng-click="Slide = 2">
+                    <h2>Low Frequency Test</h2>
+                    <p>adjust both sliders until you can no longer hear their tone.</p>
+                </div>
+                
+                <div class="Slide" ng-click="Slide = 3">
+                    <h2>High Frequency Test</h2>
+                    <p>adjust both sliders until you can no longer hear their tone.</p>
+                </div>
+                
+                <div class="Slide">
+                    <h2></h2>
+                </div> 
+            </div>
+            
             <div class="Test"
             ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
             ng-repeat="Test in Tests track by $index">
@@ -152,6 +157,7 @@
             }])
             .controller("Controller", ["$scope", "Test", function($scope, Test)
             {
+                $scope.Slide = 0
                 $scope.Tests = [];
                 $scope.Tests.push(Test.Create(4000, 1, 0.8));
                 $scope.Tests.push(Test.Create(4000, -1, 0.8));
