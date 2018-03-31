@@ -18,18 +18,39 @@
 
         <div ng-app="App" ng-controller="Controller" ng-cloak>
             
-            <div class="Slideshow" style="left:{{-Slide*100}}%">
-               <div class="Slide" ng-click="Slide = 1">
+            <div class="Slideshow" ng-class="{'Forward':SlidesForward}">
+               <div class="Slide 1 Go" ng-class="{'Active':Slides[0].Active}">
+                    <h2>REAT measurement</h2>
+                    <button ng-click="SlideChange(1)">start</button>
+                </div>
+                <div class="Slide 2 Go" ng-class="{'Active':Slides[1].Active}">
                     <h2>Begin your test</h2>
                     <p>Please have your headphones and plugs ready</p>
+                    <button ng-click="SlideChange(0)">prev</button>
+                    <button ng-click="SlideChange(2)">im ready</button>
                 </div>
-                
-                <div class="Slide" ng-click="Slide = 2">
+                <div class="Slide 2 Go" ng-class="{'Active':Slides[2].Active}">
+                    <div class="Test"
+                    ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
+                    ng-repeat="Test in Tests track by $index">
+                        <div class="Slider Interactive"
+                            ng-drag
+                            ng-drag-move="Test.HandlerDrag"
+                            ng-drag-start="Test.HandlerStart"
+                            ng-drag-stop="Test.HandlerStop">
+                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                        </div>
+                    </div>
+                    <button ng-click="SlideChange(1)">prev</button>
+                    <button ng-click="SlideChange(0)">start over</button>
+                </div>
+                <!--
+                <div class="Slide 2" ng-click="Slide = 2">
                     <h2>Low Frequency Test</h2>
                     <p>adjust both sliders until you can no longer hear their tone.</p>
                 </div>
                 
-                <div class="Slide" ng-click="Slide = 3">
+                <div class="Slide 3" ng-click="Slide = 3">
                     <h2>High Frequency Test</h2>
                     <p>adjust both sliders until you can no longer hear their tone.</p>
                 </div>
@@ -37,19 +58,10 @@
                 <div class="Slide">
                     <h2></h2>
                 </div> 
+                -->
             </div>
             
-            <div class="Test"
-            ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
-            ng-repeat="Test in Tests track by $index">
-                <div class="Slider Interactive"
-                    ng-drag
-                    ng-drag-move="Test.HandlerDrag"
-                    ng-drag-start="Test.HandlerStart"
-                    ng-drag-stop="Test.HandlerStop">
-                    <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                </div>
-            </div>
+
         </div>
 
         <script>
@@ -157,7 +169,22 @@
             }])
             .controller("Controller", ["$scope", "Test", function($scope, Test)
             {
-                $scope.Slide = 0
+                $scope.Slide = 0;
+                $scope.Slides = [true, false, false, false];
+                $scope.SlidesForward = true;
+                $scope.SlideChange = function(inIndex)
+                {
+                    if(inIndex == $scope.Slide)
+                    {
+                        return;
+                    }
+                    $scope.Slides[$scope.Slide] = false;
+                    $scope.Slides[$scope.Slide] = (inIndex > $scope.Slide);
+                    $scope.Slide = inIndex;
+                    $scope.Slides[$scope.Slide] = true;
+                    
+                };
+                
                 $scope.Tests = [];
                 $scope.Tests.push(Test.Create(4000, 1, 0.8));
                 $scope.Tests.push(Test.Create(4000, -1, 0.8));

@@ -6,10 +6,10 @@
     </head>
     <body>
         <div id="App">
-            <tone v-model="Rect"></tone>
-            <tone v-model="Rect"></tone>
-            <tone v-model="Rect"></tone>
+            <input type="range" min="0" max="100" step="10" style="width:50px; height:200px; writing-mode: bt-lr; -webkit-appearance: slider-vertical;"/>
         </div>
+        
+        <!-- lerp -->
         <script>
             var Lerp = {
                 Get: function(inMin, inAmount, inMax)
@@ -34,6 +34,8 @@
                 }
             }
         </script>
+        
+        <!-- tone -->
         <script>
             var Tone = {};
             Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
@@ -95,83 +97,41 @@
                 Tone.GainDB.gain.value = inDB;
             };
         </script>
-        <script>
 
-            Vue.component('tone', {
-                props:['value'],
-                mounted: function()
-                {
-                    var inElement = this.$el;
-                    var context = this;
-                    
-                    console.log(context);
-                    
-                    function handlerMove($event)
-                    {
-                        //coords of AABB within browser window
-                        var rect = inElement.getBoundingClientRect();
-                        var locX = $event.clientX || $event.touches[0].clientX;
-                        var locY = $event.clientY || $event.touches[0].clientY;
-        
-                        //$event.client is the coords of the mouse within the browser window
-                        var mouseRect = {
-                            x:Lerp.Clip(0, locX - rect.left, rect.width),
-                            y:Lerp.Clip(0, locY - rect.top, rect.height)
-                        };
-            
-                        var mouseRelative = {
-                            x:mouseRect.x/rect.width,
-                            y:mouseRect.y/rect.height
-                        };
-                        
-                        context.$emit('input', mouseRelative);
-                    };
-            
-                    function handlerDown($event)
-                    {
-                        $event.preventDefault();
-                        document.addEventListener("mousemove", handlerMove);
-                        document.addEventListener("mouseup", handlerUp);
-                        document.addEventListener("touchmove", handlerMove);
-                        document.addEventListener("touchend", handlerUp);
-            
-                        Tone.Setup(250, 0, 100);
-                        Tone.Time.Start();
-            
-                        handlerMove($event);
-                    };
-            
-                    function handlerUp($event)
-                    {
-                        document.removeEventListener("mousemove", handlerMove);
-                        document.removeEventListener("mouseup", handlerUp);
-                        document.removeEventListener("touchmove", handlerMove);
-                        document.removeEventListener("touchend", handlerUp);
-                        
-                        Tone.Time.Stop();
-                    };
-                    
-                    inElement.addEventListener("mousedown", handlerDown);
-                    inElement.addEventListener("touchstart", handlerDown);
-                    
-                },
-                computed:{
-                    style:function()
-                    {
-                        return {
-                            height: (this.value.y*100)+"%",
-                            width:"100%",
-                            background:"#F00"
-                        };
-                    }
-                },
-                template:'<div style="width:100px; height:200px; background:#FA0;"><div v-bind:style="style"></div></div>'
-            });
+        <!-- test -->
+        <script>
+            var TestSet = function()
+            {
+                return {
+                    HighLeft: {db:1,  lr:1,  hz:4000},
+                    HighRight:{db:1,  lr:-1, hz:4000},
+                    LowLeft:  {db:1,  lr:1,  hz:250 },
+                    LowRight: {db:1,  lr:-1, hz:250 }
+                };  
+            };
+        </script>
+
+        <!-- app -->
+        <script>
             var App = new Vue({
                 el:"#App",
+                computed:{
+                },
+                methods: {
+                },
                 data:{
-                    Rect:{x:0.5, y:0.5}
+                    Test:{
+                        Normal: TestSet(),
+                        Protected: TestSet()
+                    }
                 }
+            });
+        </script>
+        
+        <!-- Slider component -->
+        <script>
+            Vue.component("slider", {
+                
             });
         </script>
     </body>
