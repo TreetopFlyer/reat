@@ -3,46 +3,60 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="UTF-8">
-
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-cookies.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-animate.js"></script>
         <script src="ngDrag.js"></script>
-
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-
-
+    
 
         <div ng-app="App" ng-controller="Controller" ng-cloak>
             
-            <div class="Slideshow" ng-class="{'Forward':SlidesForward}">
-               <div class="Slide 1 Go" ng-class="{'Active':Slides[0].Active}">
-                    <h2>REAT measurement</h2>
-                    <button ng-click="SlideChange(1)">start</button>
-                </div>
-                <div class="Slide 2 Go" ng-class="{'Active':Slides[1].Active}">
-                    <h2>Begin your test</h2>
-                    <p>Please have your headphones and plugs ready</p>
-                    <button ng-click="SlideChange(0)">prev</button>
-                    <button ng-click="SlideChange(2)">im ready</button>
-                </div>
-                <div class="Slide 2 Go" ng-class="{'Active':Slides[2].Active}">
-                    <div class="Test"
-                    ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
-                    ng-repeat="Test in Tests track by $index">
-                        <div class="Slider Interactive"
-                            ng-drag
-                            ng-drag-move="Test.HandlerDrag"
-                            ng-drag-start="Test.HandlerStart"
-                            ng-drag-stop="Test.HandlerStop">
-                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                        </div>
+            <div class="Band Menu">
+                <div class="Center">
+                    <div class="Pad">
+                        Soundcheck
                     </div>
-                    <button ng-click="SlideChange(1)">prev</button>
-                    <button ng-click="SlideChange(0)">start over</button>
+                </div>
+            </div>
+            
+            <div class="Slideshow" ng-class="{'Backward':!Slides.Forward, 'Initial':Slides.Initial}">
+               <div class="Band Slide" ng-class="{'Active':Slides.Slides[0]}">
+                   <div class="Center">
+                       <div class="Pad">
+                           <h2>REAT measurement</h2>
+                            <button ng-click="Slides.Change(1)">start</button>
+                       </div>
+                   </div>
+                </div>
+                <div class="Band Slide" ng-class="{'Active':Slides.Slides[1]}">
+                   <div class="Center">
+                       <div class="Pad">
+                           <h2>Begin your test</h2>
+                            <p>Please have your headphones and plugs ready</p>
+                            <button ng-click="Slides.Change(0)">prev</button>
+                            <button ng-click="Slides.Change(2)">im ready</button>
+                       </div>
+                   </div>
+                </div>
+                <div class="Band Slide" ng-class="{'Active':Slides.Slides[2]}">
+                   <div class="Center">
+                       <div class="Pad">
+                           <div class="Test"
+                            ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
+                            ng-repeat="Test in Tests track by $index">
+                                <div class="Slider Interactive"
+                                    ng-drag
+                                    ng-drag-move="Test.HandlerDrag"
+                                    ng-drag-start="Test.HandlerStart"
+                                    ng-drag-stop="Test.HandlerStop">
+                                    <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                </div>
+                            </div>
+                            <button ng-click="Slides.Change(1)">prev</button>
+                            <button ng-click="Slides.Change(0)">start over</button>
+                       </div>
+                   </div>
                 </div>
                 <!--
                 <div class="Slide 2" ng-click="Slide = 2">
@@ -128,7 +142,6 @@
                 {
                     Tone.GainDB.gain.value = inDB;
                 };
-
                 return Tone;
             }])
             .factory("Test", ["Tone", function(Tone)
@@ -143,7 +156,6 @@
                         Active: false,
                         Initialized: false
                     };
-
                     test.HandlerDrag = function(inPos)
                     {
                         test.DB = 1 - (Math.ceil(inPos.y*10))/10;
@@ -162,28 +174,37 @@
                         Tone.Time.Stop();
                         test.Active = false;
                     };
-
                     return test;
                 };
                 return obj;
             }])
-            .controller("Controller", ["$scope", "Test", function($scope, Test)
+            .factory("Slideshow", [function()
             {
-                $scope.Slide = 0;
-                $scope.Slides = [true, false, false, false];
-                $scope.SlidesForward = true;
-                $scope.SlideChange = function(inIndex)
+                return function(inMembers)
                 {
-                    if(inIndex == $scope.Slide)
+                    var obj = {};
+                    obj.Index = 0;
+                    obj.Slides = inMembers;
+                    obj.Forward = true;
+                    obj.Initial = true;
+                    obj.Change = function(inIndex)
                     {
-                        return;
-                    }
-                    $scope.Slides[$scope.Slide] = false;
-                    $scope.Slides[$scope.Slide] = (inIndex > $scope.Slide);
-                    $scope.Slide = inIndex;
-                    $scope.Slides[$scope.Slide] = true;
-                    
-                };
+                        if(inIndex == obj.Index)
+                        {
+                            return;
+                        }
+                        obj.Initial = false;
+                        obj.Slides[obj.Index] = false;
+                        obj.Forward = (inIndex > obj.Index);
+                        obj.Index = inIndex;
+                        obj.Slides[obj.Index] = true;
+                    };
+                    return obj;
+                }
+            }])
+            .controller("Controller", ["$scope", "Test", "Slideshow", function($scope, Test, Slideshow)
+            {
+                $scope.Slides = Slideshow([true, false, false, false]);
                 
                 $scope.Tests = [];
                 $scope.Tests.push(Test.Create(4000, 1, 0.8));

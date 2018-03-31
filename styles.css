@@ -1,6 +1,30 @@
 body
 {
-    margin:3rem;
+    margin:0;
+    background:#000;
+    
+}
+.Band
+{
+    
+}
+.Band .Center
+{
+    max-width:900px;
+    margin:0 auto;
+}
+.Pad
+{
+    display:block;
+    padding:1rem;
+}
+.Band.Menu
+{
+    background:#fff;
+}
+.Band.Slide
+{
+    color:#fff;
 }
 .Slider
 {
@@ -15,7 +39,7 @@ body
 }
 .Slider .Bar
 {
-    transition:background 0.4s, box-shadow 0.4s, border 0.4s;
+    transition:all 0.4s;
     position:absolute;
     bottom:0;
     left:0;
@@ -25,7 +49,9 @@ body
 }
 .Test:hover .Bar
 {
-    box-shadow: 0px 0px 10px #000;
+    left:-3px;
+    bottom:-3px;
+    box-shadow: 0px 0px 10px #fff;
     border:3px solid #fff;
     z-index:999;
 }
@@ -38,13 +64,7 @@ body
     background:#0A0;
 }
 
-#App
-{
-    position:relative;
-    width:50%;
-    margin:0 auto;
-    overflow:hidden;
-}
+
 .Slideshow
 {
     position:relative;
@@ -57,40 +77,45 @@ body
     display:block;
     position:absolute;
     top:0;
-    left:0;
     width:100%;
     height:100%;
 }
-.Slide.Force
-{
-    transition:all 0s;
-}
-.Slide.Go
-{
-    transition:all 0.5s;
-}
-.Slide.Left
-{
-    left:-100%;
-}
-.Slide.Right
-{
-    left:100%;
-}
-.Slide.Active /* center */
+.Slide.Active
 {
     position:relative;
-    height:auto;
-    left:0%;
+}
+.Slideshow .Slide.Active
+{
+    animation: EnterForward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slideshow.Backward .Slide.Active
+{
+    animation: EnterBackward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slideshow.Initial .Slide
+{
+    animation-duration: 0s;
+}
+.Slideshow .Slide
+{
+    animation: ExitForward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slideshow.Backward .Slide
+{
+    animation: ExitBackward ease-out 0.4s;
+    animation-fill-mode: both;
 }
 @keyframes EnterForward
 {
-    from{left:-100%}
+    from{left:100%}
     to{left:0%}
 }
 @keyframes EnterBackward
 {
-    from{left:100%}
+    from{left:-100%}
     to{left:0%}
 }
 @keyframes ExitForward
