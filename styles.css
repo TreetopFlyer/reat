@@ -16,15 +16,43 @@ body
 .Pad
 {
     display:block;
-    padding:1rem;
+    padding:1rem 2rem 1rem 2rem;
+}
+.Band.Title
+{
+    background:#eeeeee;
+}
+.Band.Title .Center
+{
+    background:#fff;
 }
 .Band.Menu
 {
-    background:#fff;
+    display:none;
+}
+.Band.Menu a
+{
+    display:block;
+    overflow:hidden;
+    height:0;
+    padding:0;
+    margin:0;
+    border:0;
+    transition:all 0.4s;
+}
+.Menu .Band.Menu a
+{
+    height:3em;
+    padding:0.5em;
+    border:1px;
 }
 .Band.Slide
 {
     color:#fff;
+}
+.Band.Slide .Center
+{
+    background:#111;
 }
 
 form
