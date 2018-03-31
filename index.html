@@ -5,6 +5,8 @@
         <meta charset="UTF-8">
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
         <script src="ngDrag.js"></script>
+        <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
@@ -23,10 +25,12 @@
             <div class="Slideshow" ng-class="{'Backward':!Slides.Forward, 'Initial':Slides.Initial}">
                <div class="Band Slide" ng-class="{'Active':Slides.Slides[0]}">
                    <div class="Center">
-                       <div class="Pad">
-                           <h2>REAT measurement</h2>
-                            <button ng-click="Slides.Change(1)">start</button>
-                       </div>
+                        <div class="Pad">
+                            <h2>REAT measurement</h2>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(1)">Begin <i class="icon-headphones"></i></button>
+                            </div>
+                        </div>
                    </div>
                 </div>
                 <div class="Band Slide" ng-class="{'Active':Slides.Slides[1]}">
@@ -34,14 +38,22 @@
                        <div class="Pad">
                            <h2>Begin your test</h2>
                             <p>Please have your headphones and plugs ready</p>
-                            <button ng-click="Slides.Change(0)">prev</button>
-                            <button ng-click="Slides.Change(2)">im ready</button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(0)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Continue <i class="icon-chevron-right"></i></button>
+                            </div>
                        </div>
                    </div>
                 </div>
                 <div class="Band Slide" ng-class="{'Active':Slides.Slides[2]}">
                    <div class="Center">
                        <div class="Pad">
+                           <h2>Without Ear Protection</h2>
+                           <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(1)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-warn" ng-click="">Reset <i class="icon-refresh"></i></button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(3)">Continue <i class="icon-chevron-right"></i></button>
+                            </div>
                            <div class="Test"
                             ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
                             ng-repeat="Test in Tests track by $index">
@@ -53,8 +65,6 @@
                                     <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
                                 </div>
                             </div>
-                            <button ng-click="Slides.Change(1)">prev</button>
-                            <button ng-click="Slides.Change(0)">start over</button>
                        </div>
                    </div>
                 </div>
