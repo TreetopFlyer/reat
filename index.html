@@ -26,7 +26,17 @@
                <div class="Band Slide" ng-class="{'Active':Slides.Slides[0]}">
                    <div class="Center">
                         <div class="Pad">
-                            <h2>REAT measurement</h2>
+                            <h3>REAT measurement</h3>
+                            <form>
+                                <div class="form-group">
+                                    <label for="InputEmail">Email address</label>
+                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="InputName">Name</label>
+                                    <input type="text" class="form-control" id="InputName" placeholder="">
+                                </div>
+                            </form>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-primary" ng-click="Slides.Change(1)">Begin <i class="icon-headphones"></i></button>
                             </div>
@@ -36,11 +46,17 @@
                 <div class="Band Slide" ng-class="{'Active':Slides.Slides[1]}">
                    <div class="Center">
                        <div class="Pad">
-                           <h2>Begin your test</h2>
-                            <p>Please have your headphones and plugs ready</p>
+                           <h3>Begin your test</h3>
+                            <p class="lead">Please have your headphones and ear protection ready</p>
+                            <p>
+                                This will begin a two part test.
+                            </p>
+                            <p>
+                                Each part of the test will have four volume levels, adjusting a volume level will produce a beep. Move each level down to the exact point where you can no longer hear the tone, then proceed to the next part of the test.
+                            </p>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-secondary" ng-click="Slides.Change(0)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Continue <i class="icon-chevron-right"></i></button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Part One <i class="icon-chevron-right"></i></button>
                             </div>
                        </div>
                    </div>
@@ -48,22 +64,37 @@
                 <div class="Band Slide" ng-class="{'Active':Slides.Slides[2]}">
                    <div class="Center">
                        <div class="Pad">
-                           <h2>Without Ear Protection</h2>
+                           <h3>Part One: Without Ear Protection</h3>
+                           <p class="lead">
+                               Put on your headphones, but do not wear ear protection.
+                            </p>
                            <div class="btn-group">
                                 <button type="button" class="btn btn-secondary" ng-click="Slides.Change(1)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-warn" ng-click="">Reset <i class="icon-refresh"></i></button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(3)">Continue <i class="icon-chevron-right"></i></button>
+                                <button type="button" class="btn btn-danger" ng-click="TestNormal.Reset()" ng-disabled="!TestNormal.PartiallyDone()">Reset <i class="icon-refresh"></i></button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(3)" ng-disabled="!TestNormal.Done()">Continue <i class="icon-chevron-right"></i></button>
                             </div>
-                           <div class="Test"
-                            ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
-                            ng-repeat="Test in Tests track by $index">
-                                <div class="Slider Interactive"
-                                    ng-drag
-                                    ng-drag-move="Test.HandlerDrag"
-                                    ng-drag-start="Test.HandlerStart"
-                                    ng-drag-stop="Test.HandlerStop">
-                                    <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                            <div class="TestSet">
+                                <div class="Test" ng-repeat="Test in TestNormal.Tests track by $index" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                    <div class="Cap"><span>{{Test.Clean()}}</span></div>
+                                    <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                        <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                    </div>
                                 </div>
+                            </div>
+                       </div>
+                   </div>
+                </div>
+                <div class="Band Slide" ng-class="{'Active':Slides.Slides[3]}">
+                   <div class="Center">
+                       <div class="Pad">
+                           <h2>Continue your test</h2>
+                            <p class="lead">Please have your headphones and ear protection ready</p>
+                            <p>
+                                Put in your ear protection and make sure your headphones are on correctly.
+                            </p>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(0)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Part Two <i class="icon-chevron-right"></i></button>
                             </div>
                        </div>
                    </div>
@@ -156,25 +187,27 @@
             }])
             .factory("Test", ["Tone", function(Tone)
             {
-                var obj = {};
-                obj.Create = function(inFrequency, inPan, inDB)
+                return function(inFrequency, inPan, inDB)
                 {
                     var test = {
-                        Frequency:inFrequency,
-                        Pan:inPan,
-                        DB:inDB,
-                        Active: false,
-                        Initialized: false
+                        Initial: [inFrequency, inPan, inDB]
+                    };
+                    test.Reset = function()
+                    {
+                      test.Frequency = test.Initial[0];  
+                      test.Pan = test.Initial[1];  
+                      test.DB = test.Initial[2];  
+                      test.Active = false;
+                      test.Completed = false;
                     };
                     test.HandlerDrag = function(inPos)
                     {
                         test.DB = 1 - (Math.ceil(inPos.y*10))/10;
-                        console.log(inPos);
                         Tone.Fade(test.DB);
                     };
                     test.HandlerStart = function()
                     {
-                        test.Initialized = true;
+                        test.Completed = true;
                         Tone.Setup(test.Frequency, test.Pan, test.DB);
                         Tone.Time.Start();
                         test.Active = true;
@@ -184,9 +217,68 @@
                         Tone.Time.Stop();
                         test.Active = false;
                     };
+                    test.Clean = function()
+                    {
+                        return Math.floor(test.DB*100)/100;  
+                    };
+                    test.Reset();
                     return test;
                 };
-                return obj;
+            }])
+            .factory("TestSet", ["Test", function(Test)
+            {
+                return function()
+                {
+                    var obj = {};
+                    
+                    obj.HighLeft = Test(4000, 1, 0.8);
+                    obj.HighRight = Test(4000, -1, 0.8);
+                    obj.LowLeft = Test(250, 1, 0.8);
+                    obj.LowLRight = Test(250, -1, 0.8);
+                    
+                    obj.Tests = [];
+                    obj.Tests.push(obj.HighLeft);
+                    obj.Tests.push(obj.HighRight);
+                    obj.Tests.push(obj.LowLeft);
+                    obj.Tests.push(obj.LowRight);
+                    
+                    obj.Reset = function()
+                    {
+                        var i;
+                        for(i=0; i<obj.Tests.length; i++)
+                        {
+                            obj.Tests[i].Reset();
+                        }   
+                    };
+                    
+                    obj.PartiallyDone = function()
+                    {
+                        var i;
+                        for(i=0; i<obj.Tests.length; i++)
+                        {
+                            if(obj.Tests[i].Completed)
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    obj.Done = function()
+                    {
+                        var i;
+                        for(i=0; i<obj.Tests.length; i++)
+                        {
+                            if(!obj.Tests[i].Completed)
+                            {
+                                console.log("not done");
+                                return false;
+                            }
+                        }
+                        console.log("done");
+                        return true;
+                    };
+                    return obj;
+                };
             }])
             .factory("Slideshow", [function()
             {
@@ -212,15 +304,12 @@
                     return obj;
                 }
             }])
-            .controller("Controller", ["$scope", "Test", "Slideshow", function($scope, Test, Slideshow)
+            .controller("Controller", ["$scope", "TestSet", "Slideshow", function($scope, TestSet, Slideshow)
             {
                 $scope.Slides = Slideshow([true, false, false, false]);
                 
-                $scope.Tests = [];
-                $scope.Tests.push(Test.Create(4000, 1, 0.8));
-                $scope.Tests.push(Test.Create(4000, -1, 0.8));
-                $scope.Tests.push(Test.Create(250, 1, 0.8));
-                $scope.Tests.push(Test.Create(250, -1, 0.8));
+                $scope.TestNormal = TestSet();
+                $scope.TestProtected = TestSet();
             }]);
         </script>
     </body>
