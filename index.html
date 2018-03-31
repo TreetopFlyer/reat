@@ -40,7 +40,6 @@
             ng-repeat="Test in Tests track by $index">
 
 
-                <div class="Icon" ng-class="{'Right':(Test.Pan>0), 'High':(Test.Frequency>1000), 'Initialized':Test.Initialized}"></div>
                 <div class="Slider Interactive"
                 ng-drag
                 ng-drag-move="Test.HandlerDrag"
@@ -122,7 +121,7 @@
                 };
                 Tone.Fade = function(inDB)
                 {
-                    Tone.GainDB.gain.value = inDB*0.01;
+                    Tone.GainDB.gain.value = inDB;
                 };
 
                 return Tone;

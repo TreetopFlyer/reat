@@ -7,6 +7,8 @@
     <body>
         <div id="App">
             <tone v-model="Rect"></tone>
+            <tone v-model="Rect"></tone>
+            <tone v-model="Rect"></tone>
         </div>
         <script>
             var Lerp = {
@@ -90,7 +92,7 @@
             };
             Tone.Fade = function(inDB)
             {
-                Tone.GainDB.gain.value = inDB*0.01;
+                Tone.GainDB.gain.value = inDB;
             };
         </script>
         <script>
@@ -163,7 +165,7 @@
                         };
                     }
                 },
-                template:'<div style="width:500px; height:2000px; background:#FA0;"><div v-bind:style="style"></div></div>'
+                template:'<div style="width:100px; height:200px; background:#FA0;"><div v-bind:style="style"></div></div>'
             });
             var App = new Vue({
                 el:"#App",
