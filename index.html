@@ -17,7 +17,7 @@
             <div class="Band Menu">
                 <div class="Center">
                     <div class="Pad">
-                        Soundcheck
+                        <strong>Soundcheck Audiology</strong>
                     </div>
                 </div>
             </div>
@@ -30,11 +30,11 @@
                             <form>
                                 <div class="form-group">
                                     <label for="InputEmail">Email address</label>
-                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com">
+                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com" ng-model="Email">
                                 </div>
                                 <div class="form-group">
                                     <label for="InputName">Name</label>
-                                    <input type="text" class="form-control" id="InputName" placeholder="">
+                                    <input type="text" class="form-control" id="InputName" placeholder="your name" ng-model="Name">
                                 </div>
                             </form>
                             <div class="btn-group">
@@ -61,12 +61,11 @@
                        </div>
                    </div>
                 </div>
-                <div class="Band Slide" ng-class="{'Active':Slides.Slides[2]}">
+                <div class="Band Slide Test1" ng-class="{'Active':Slides.Slides[2]}">
                    <div class="Center">
                        <div class="Pad">
-                           <h3>Part One: Without Ear Protection</h3>
                            <p class="lead">
-                               Put on your headphones, but do not wear ear protection.
+                               <strong>Part One:</strong> Put on your headphones, but do not wear ear protection.
                             </p>
                            <div class="btn-group">
                                 <button type="button" class="btn btn-secondary" ng-click="Slides.Change(1)"><i class="icon-chevron-left"></i> Go Back</button>
@@ -74,10 +73,44 @@
                                 <button type="button" class="btn btn-primary" ng-click="Slides.Change(3)" ng-disabled="!TestNormal.Done()">Continue <i class="icon-chevron-right"></i></button>
                             </div>
                             <div class="TestSet">
-                                <div class="Test" ng-repeat="Test in TestNormal.Tests track by $index" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                    <div class="Cap"><span>{{Test.Clean()}}</span></div>
-                                    <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                        <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                <div class="Channel Right">
+                                    <div class="Test High" ng-repeat="Test in [TestNormal.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="Test Low" ng-repeat="Test in [TestNormal.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="Channel Left">
+                                    <div class="Test High" ng-repeat="Test in [TestNormal.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="Test Low" ng-repeat="Test in [TestNormal.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -93,29 +126,103 @@
                                 Put in your ear protection and make sure your headphones are on correctly.
                             </p>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(0)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Part Two <i class="icon-chevron-right"></i></button>
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(2)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(4)">Part Two <i class="icon-chevron-right"></i></button>
                             </div>
                        </div>
                    </div>
                 </div>
-                <!--
-                <div class="Slide 2" ng-click="Slide = 2">
-                    <h2>Low Frequency Test</h2>
-                    <p>adjust both sliders until you can no longer hear their tone.</p>
+                <div class="Band Slide Test2" ng-class="{'Active':Slides.Slides[4]}">
+                   <div class="Center">
+                       <div class="Pad">
+                           <p class="lead">
+                               <strong>Part Two:</strong> Put in your ear protection and secure headphones.
+                            </p>
+                           <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(3)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-danger" ng-click="TestProtected.Reset()" ng-disabled="!TestProtected.PartiallyDone()">Reset <i class="icon-refresh"></i></button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(5)" ng-disabled="!TestProtected.Done()">Continue <i class="icon-chevron-right"></i></button>
+                            </div>
+                            <div class="TestSet">
+                                <div class="Channel Right">
+                                    <div class="Test High" ng-repeat="Test in [TestProtected.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="Test Low" ng-repeat="Test in [TestProtected.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="Channel Left">
+                                    <div class="Test High" ng-repeat="Test in [TestProtected.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="Test Low" ng-repeat="Test in [TestProtected.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
+                                        <div class="Cap">
+                                            <span>{{Test.Clean()}}</span>
+                                            <i class="icon-ok"></i>
+                                        </div>
+                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
+                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                       </div>
+                   </div>
                 </div>
-                
-                <div class="Slide 3" ng-click="Slide = 3">
-                    <h2>High Frequency Test</h2>
-                    <p>adjust both sliders until you can no longer hear their tone.</p>
+                <div class="Band Slide Done" ng-class="{'Active':Slides.Slides[5]}">
+                    <div class="Center">
+                        <div class="Pad">
+                            <h3>Submit Results</h3>
+                            <p class="lead">
+                                Please confirm your information
+                            </p>
+                            <form>
+                                <div class="form-group">
+                                    <label for="InputEmail">Email address</label>
+                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com" ng-model="Email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="InputName">Name</label>
+                                    <input type="text" class="form-control" id="InputName" placeholder="your name" ng-model="Name">
+                                </div>
+                            </form>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(4)"><i class="icon-chevron-left"></i> Go Back</button>
+                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(6)">Send Results <i class="icon-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="Slide">
-                    <h2></h2>
-                </div> 
-                -->
+                <div class="Band Slide Thanks" ng-class="{'Active':Slides.Slides[6]}">
+                    <div class="Center">
+                        <div class="Pad">
+                            <h3>Thank you!</h3>
+                            <p class="lead">
+                                Your test results have been sent to Soundcheck Audiology.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
 
         </div>
 
@@ -164,7 +271,7 @@
                 Tone.Setup = function(inFrequency, inPan, inDB)
                 {
                     Tone.GainBeep = Tone.Context.createGain();
-                    Tone.GainBeep.gain.value = 0;
+                    Tone.GainBeep.gain.value = 1;
                     Tone.GainDB = Tone.Context.createGain();
                     Tone.Panner = Tone.Context.createStereoPanner();
                     Tone.Oscillator = Tone.Context.createOscillator();
@@ -234,7 +341,7 @@
                     obj.HighLeft = Test(4000, 1, 0.8);
                     obj.HighRight = Test(4000, -1, 0.8);
                     obj.LowLeft = Test(250, 1, 0.8);
-                    obj.LowLRight = Test(250, -1, 0.8);
+                    obj.LowRight = Test(250, -1, 0.8);
                     
                     obj.Tests = [];
                     obj.Tests.push(obj.HighLeft);
@@ -256,7 +363,7 @@
                         var i;
                         for(i=0; i<obj.Tests.length; i++)
                         {
-                            if(obj.Tests[i].Completed)
+                            if(obj.Tests[i].Completed && !obj.Tests[i].Active)
                             {
                                 return true;
                             }
@@ -268,7 +375,7 @@
                         var i;
                         for(i=0; i<obj.Tests.length; i++)
                         {
-                            if(!obj.Tests[i].Completed)
+                            if(!obj.Tests[i].Completed || obj.Tests[i].Active)
                             {
                                 console.log("not done");
                                 return false;
@@ -307,6 +414,9 @@
             .controller("Controller", ["$scope", "TestSet", "Slideshow", function($scope, TestSet, Slideshow)
             {
                 $scope.Slides = Slideshow([true, false, false, false]);
+                
+                $scope.Name = "";
+                $scope.Email = "";
                 
                 $scope.TestNormal = TestSet();
                 $scope.TestProtected = TestSet();
