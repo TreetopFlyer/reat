@@ -49,7 +49,7 @@ angular.module("ngDrag", [])
             //coords of AABB within browser window
             var rect = inElement[0].getBoundingClientRect();
             var locX = $event.clientX || $event.touches[0].clientX;
-            var locY = $event.clientX || $event.touches[0].clientY;
+            var locY = $event.clientY || $event.touches[0].clientY;
 
             //$event.client is the coords of the mouse within the browser window
             var mouseRect = {

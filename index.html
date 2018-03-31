@@ -34,30 +34,18 @@
         </div>
 
         <div ng-app="App" ng-controller="Controller" ng-cloak>
-
             <div class="Test"
-            ng-class="{'Active':Test.Active}"
+            ng-class="{'Active':Test.Active, 'Initialized':Test.Initialized}"
             ng-repeat="Test in Tests track by $index">
-
-
                 <div class="Slider Interactive"
-                ng-drag
-                ng-drag-move="Test.HandlerDrag"
-                ng-drag-start="Test.HandlerStart"
-                ng-drag-stop="Test.HandlerStop">
-                    <div class="Bar" style="width:{{Test.DB*100}}%;"></div>
+                    ng-drag
+                    ng-drag-move="Test.HandlerDrag"
+                    ng-drag-start="Test.HandlerStart"
+                    ng-drag-stop="Test.HandlerStop">
+                    <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
                 </div>
-            
             </div>
-
-            <span>{{Iterations}}</span>
         </div>
-
-<script>
-
-
-
-</script>
 
         <script>
             angular
@@ -141,7 +129,8 @@
 
                     test.HandlerDrag = function(inPos)
                     {
-                        test.DB = (Math.ceil(inPos.x*20))/20;
+                        test.DB = 1 - (Math.ceil(inPos.y*10))/10;
+                        console.log(inPos);
                         Tone.Fade(test.DB);
                     };
                     test.HandlerStart = function()
@@ -164,10 +153,10 @@
             .controller("Controller", ["$scope", "Test", function($scope, Test)
             {
                 $scope.Tests = [];
-                $scope.Tests.push(Test.Create(4000, 1, 0.5));
-                $scope.Tests.push(Test.Create(4000, -1, 0.5));
-                $scope.Tests.push(Test.Create(250, 1, 0.5));
-                $scope.Tests.push(Test.Create(250, -1, 0.5));
+                $scope.Tests.push(Test.Create(4000, 1, 0.8));
+                $scope.Tests.push(Test.Create(4000, -1, 0.8));
+                $scope.Tests.push(Test.Create(250, 1, 0.8));
+                $scope.Tests.push(Test.Create(250, -1, 0.8));
             }]);
         </script>
     </body>
