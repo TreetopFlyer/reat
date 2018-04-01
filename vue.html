@@ -24,7 +24,9 @@
     </head>
     <body>
         <div id="App">
-            <slider v-on:drag="HandlerSlide" v-bind:value="Rect.x"></slider>
+            <slider v-on:drag="HandlerSlide" v-on:test="HandlerTest" v-bind:value="Rect.x"></slider>
+            <tone v-bind:value="0.9"></tone>
+            <tone v-bind:value="0.1"></tone>
         </div>
         
         <!-- slider directive -->
@@ -164,12 +166,33 @@
        <script>
             Vue.component('tone', {
                 props:['value'],
+                data: function()
+                {
+                    return {
+                        pos:this.value
+                    }  
+                },
                 mounted: function()
                 {
                     var inElement = this.$el;
                     var context = this;
                     
                     console.log(context);
+                    
+                    //this.pos = this.value;
+                    
+                    function clip(inMin, inAmount, inMax)
+                    {
+                        if(inAmount < inMin)
+                        {
+                            return inMin;
+                        }
+                        if(inAmount > inMax)
+                        {
+                            return inMax;
+                        }
+                        return inAmount;
+                    }
                     
                     function handlerMove($event)
                     {
@@ -180,14 +203,16 @@
         
                         //$event.client is the coords of the mouse within the browser window
                         var mouseRect = {
-                            x:Lerp.Clip(0, locX - rect.left, rect.width),
-                            y:Lerp.Clip(0, locY - rect.top, rect.height)
+                            x:clip(0, locX - rect.left, rect.width),
+                            y:clip(0, locY - rect.top, rect.height)
                         };
             
                         var mouseRelative = {
                             x:mouseRect.x/rect.width,
                             y:mouseRect.y/rect.height
                         };
+                        
+                        context.pos = mouseRelative.x;
                         
                         context.$emit('input', mouseRelative);
                     };
@@ -218,13 +243,12 @@
                     
                     inElement.addEventListener("mousedown", handlerDown);
                     inElement.addEventListener("touchstart", handlerDown);
-                    
                 },
                 computed:{
                     style:function()
                     {
                         return {
-                            height: (this.value.y*100)+"%",
+                            height: (this.pos*100)+"%",
                             width:"100%",
                             background:"#F00"
                         };
@@ -238,10 +262,15 @@
         <script>
             Vue.component('slider', {
                 props:['value'],
+                mounted:function()
+                {
+                  console.log(this.$el);  
+                },
                 methods:{
                     HandlerStart: function()
                     {
                         console.log("starting audio");
+                        this.$emit('test', {yep:true});
                     }
                 },
                 template:"#TemplateSlider"
@@ -253,6 +282,7 @@
                 <div class="Area"
                     v-slider
                     v-on:drag="$emit('drag', $event)"
+                    v-on:dragstart="$emit('dragstart', $event)"
                     v-on:dragstart="HandlerStart"
                     v-on:dragstop="$emit('dragstop', $event)"
                     style="width:300px; background:#fff;"
@@ -274,6 +304,10 @@
                     HandlerSlide: function(inEvent)
                     {
                         this.Rect.x = inEvent.detail.x;
+                    },
+                    HandlerTest: function(inEvent)
+                    {
+                        console.log(inEvent);
                     }
                 }
             });
