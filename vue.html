@@ -8,6 +8,7 @@
         <div id="App">
             <tone v-model="Rect"></tone>
         </div>
+        <!-- lerp -->
         <script>
             var Lerp = {
                 Get: function(inMin, inAmount, inMax)
@@ -32,6 +33,70 @@
                 }
             }
         </script>
+        
+        <!-- slider directive -->
+        <script>
+            Vue.directive('slider', {
+                bind: function(inElement, inBinding, inNode)
+                {
+                    console.log(inElement);
+                    console.log(inBinding);
+                    
+                    function handlerMove($event)
+                    {
+                        //coords of AABB within browser window
+                        var rect = inElement.getBoundingClientRect();
+                        var locX = $event.clientX || $event.touches[0].clientX;
+                        var locY = $event.clientX || $event.touches[0].clientY;
+        
+                        //$event.client is the coords of the mouse within the browser window
+                        var mouseRect = {
+                            x:Lerp.Clip(0, locX - rect.left, rect.width),
+                            y:Lerp.Clip(0, locY - rect.top, rect.height)
+                        };
+            
+                        var mouseRelative = {
+                            x:mouseRect.x/rect.width,
+                            y:mouseRect.y/rect.height
+                        };
+                        
+                        //console.log("Drag ", mouseRelative);
+                        inNode.context[inBinding.expression] = mouseRelative;
+                        inNode.context.$emit("move", mouseRelative.x);
+                    };
+            
+                    function handlerDown($event)
+                    {
+                        $event.preventDefault();
+                        document.addEventListener("mousemove", handlerMove);
+                        document.addEventListener("mouseup", handlerUp);
+            
+                        document.addEventListener("touchmove", handlerMove);
+                        document.addEventListener("touchend", handlerUp);
+            
+                        handlerMove($event);
+                        
+                        console.log("Drag Start");
+                        
+                    };
+            
+                    function handlerUp($event)
+                    {
+                        document.removeEventListener("mousemove", handlerMove);
+                        document.removeEventListener("mouseup", handlerUp);
+            
+                        document.removeEventListener("touchmove", handlerMove);
+                        document.removeEventListener("touchend", handlerUp);
+            
+                        console.log("Drag Stop");
+                    };
+                    
+                    inElement.addEventListener("mousedown", handlerDown);
+                    inElement.addEventListener("touchstart", handlerDown);
+                }
+            });
+        </script>
+        
         <script>
             var Tone = {};
             Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
@@ -93,7 +158,9 @@
                 Tone.GainDB.gain.value = inDB*0.01;
             };
         </script>
-        <script>
+       
+       <!-- tone/slider component -->
+       <script>
 
             Vue.component('tone', {
                 props:['value'],
