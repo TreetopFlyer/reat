@@ -6,7 +6,9 @@
     </head>
     <body>
         <div id="App">
-            <tone v-model="Rect"></tone>
+            <div v-on:drag="HandlerSlide" v-slider="Value" style="width:300px; height:300px; background:#FA0; margin:5px;">
+                <div style="height:100%; background:#F00;" v-bind:style="{width:Rect.x*100 + '%'}"></div>
+            </div>
         </div>
         <!-- lerp -->
         <script>
@@ -42,6 +44,8 @@
                     console.log(inElement);
                     console.log(inBinding);
                     
+                    inBinding.value = 5;
+                    
                     function handlerMove($event)
                     {
                         //coords of AABB within browser window
@@ -54,15 +58,13 @@
                             x:Lerp.Clip(0, locX - rect.left, rect.width),
                             y:Lerp.Clip(0, locY - rect.top, rect.height)
                         };
-            
-                        var mouseRelative = {
-                            x:mouseRect.x/rect.width,
-                            y:mouseRect.y/rect.height
+
+                        var event = new Event('drag');
+                        event.drag = {
+                            x: mouseRect.x/rect.width,
+                            y: mouseRect.y/rect.height
                         };
-                        
-                        //console.log("Drag ", mouseRelative);
-                        inNode.context[inBinding.expression] = mouseRelative;
-                        inNode.context.$emit("move", mouseRelative.x);
+                        inElement.dispatchEvent(event);
                     };
             
                     function handlerDown($event)
@@ -76,8 +78,7 @@
             
                         handlerMove($event);
                         
-                        console.log("Drag Start");
-                        
+                        inElement.dispatchEvent(new Event('dragstart'));
                     };
             
                     function handlerUp($event)
@@ -88,7 +89,7 @@
                         document.removeEventListener("touchmove", handlerMove);
                         document.removeEventListener("touchend", handlerUp);
             
-                        console.log("Drag Stop");
+                        inElement.dispatchEvent(new Event('dragstop'));
                     };
                     
                     inElement.addEventListener("mousedown", handlerDown);
@@ -97,6 +98,7 @@
             });
         </script>
         
+        <!-- tone generator -->
         <script>
             var Tone = {};
             Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
@@ -161,7 +163,6 @@
        
        <!-- tone/slider component -->
        <script>
-
             Vue.component('tone', {
                 props:['value'],
                 mounted: function()
@@ -232,10 +233,21 @@
                 },
                 template:'<div style="width:500px; height:2000px; background:#FA0;"><div v-bind:style="style"></div></div>'
             });
+        </script>
+        
+        <!-- vue app -->
+        <script>
             var App = new Vue({
                 el:"#App",
                 data:{
+                    Value:0.1,
                     Rect:{x:0.5, y:0.5}
+                },
+                methods:{
+                    HandlerSlide: function(inEvent)
+                    {
+                        this.Rect.x = inEvent.drag.x;
+                    }
                 }
             });
         </script>
