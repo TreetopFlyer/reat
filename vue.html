@@ -2,49 +2,48 @@
 <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        <!-- custom event polyfill -->
+        <script>
+            (function () {
+            
+              if ( typeof window.CustomEvent === "function" ) return false;
+            
+              function CustomEvent ( event, params ) {
+                params = params || { bubbles: false, cancelable: false, detail: undefined };
+                var evt = document.createEvent( 'CustomEvent' );
+                evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+                return evt;
+               }
+            
+              CustomEvent.prototype = window.Event.prototype;
+            
+              window.CustomEvent = CustomEvent;
+            })();
+        </script>
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body>
         <div id="App">
-            <div v-on:drag="HandlerSlide" v-slider="Value" style="width:300px; height:300px; background:#FA0; margin:5px;">
-                <div style="height:100%; background:#F00;" v-bind:style="{width:Rect.x*100 + '%'}"></div>
-            </div>
+            <slider v-on:drag="HandlerSlide" v-bind:value="Rect.x"></slider>
         </div>
-        <!-- lerp -->
-        <script>
-            var Lerp = {
-                Get: function(inMin, inAmount, inMax)
-                {
-                    return (inAmount - inMin)/(inMax - inMin);
-                },
-                Set: function(inMin, inAmount, inMax)
-                {
-                    return inMin + inAmount*(inMax - inMin);
-                },
-                Clip: function(inMin, inAmount, inMax)
-                {
-                    if(inAmount < inMin)
-                    {
-                        return inMin;
-                    }
-                    if(inAmount > inMax)
-                    {
-                        return inMax;
-                    }
-                    return inAmount;
-                }
-            }
-        </script>
         
         <!-- slider directive -->
         <script>
             Vue.directive('slider', {
                 bind: function(inElement, inBinding, inNode)
                 {
-                    console.log(inElement);
-                    console.log(inBinding);
-                    
-                    inBinding.value = 5;
+                    function clip(inMin, inAmount, inMax)
+                    {
+                        if(inAmount < inMin)
+                        {
+                            return inMin;
+                        }
+                        if(inAmount > inMax)
+                        {
+                            return inMax;
+                        }
+                        return inAmount;
+                    }
                     
                     function handlerMove($event)
                     {
@@ -55,17 +54,17 @@
         
                         //$event.client is the coords of the mouse within the browser window
                         var mouseRect = {
-                            x:Lerp.Clip(0, locX - rect.left, rect.width),
-                            y:Lerp.Clip(0, locY - rect.top, rect.height)
+                            x:clip(0, locX - rect.left, rect.width),
+                            y:clip(0, locY - rect.top, rect.height)
                         };
 
-                        var event = new Event('drag');
-                        event.drag = {
-                            x: mouseRect.x/rect.width,
-                            y: mouseRect.y/rect.height
-                        };
-                        inElement.dispatchEvent(event);
-                    };
+                        inElement.dispatchEvent(new CustomEvent("drag", {
+                            detail:{
+                                x: mouseRect.x/rect.width,
+                                y: mouseRect.y/rect.height
+                            }
+                        }));
+                    }
             
                     function handlerDown($event)
                     {
@@ -78,8 +77,8 @@
             
                         handlerMove($event);
                         
-                        inElement.dispatchEvent(new Event('dragstart'));
-                    };
+                        inElement.dispatchEvent(new CustomEvent("dragstart"));
+                    }
             
                     function handlerUp($event)
                     {
@@ -89,8 +88,8 @@
                         document.removeEventListener("touchmove", handlerMove);
                         document.removeEventListener("touchend", handlerUp);
             
-                        inElement.dispatchEvent(new Event('dragstop'));
-                    };
+                        inElement.dispatchEvent(new CustomEvent("dragstop"));
+                    }
                     
                     inElement.addEventListener("mousedown", handlerDown);
                     inElement.addEventListener("touchstart", handlerDown);
@@ -235,6 +234,34 @@
             });
         </script>
         
+        <!-- slider component -->
+        <script>
+            Vue.component('slider', {
+                props:['value'],
+                methods:{
+                    HandlerStart: function()
+                    {
+                        console.log("starting audio");
+                    }
+                },
+                template:"#TemplateSlider"
+            });
+        </script>
+        <script type="text/x-template" id="TemplateSlider">
+            <div class="Slider">
+                <div class="Data">{{value}}</div>
+                <div class="Area"
+                    v-slider
+                    v-on:drag="$emit('drag', $event)"
+                    v-on:dragstart="HandlerStart"
+                    v-on:dragstop="$emit('dragstop', $event)"
+                    style="width:300px; background:#fff;"
+                >
+                    <div class="Bar" style="height:50px; background:#000;" v-bind:style="{width:value*100 + '%'}"></div>
+                </div>
+            </div>
+        </script>
+        
         <!-- vue app -->
         <script>
             var App = new Vue({
@@ -246,7 +273,7 @@
                 methods:{
                     HandlerSlide: function(inEvent)
                     {
-                        this.Rect.x = inEvent.drag.x;
+                        this.Rect.x = inEvent.detail.x;
                     }
                 }
             });
