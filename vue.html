@@ -24,81 +24,9 @@
     </head>
     <body>
         <div id="App">
-            <slider v-on:drag="HandlerSlide" v-on:test="HandlerTest" v-bind:value="Rect.x"></slider>
-            <tone v-bind:value="0.9"></tone>
-            <tone v-bind:value="0.1"></tone>
+            <Tone v-model="Test.Volume" frequency="440"></Tone>
         </div>
-        
-        <!-- slider directive -->
-        <script>
-            Vue.directive('slider', {
-                bind: function(inElement, inBinding, inNode)
-                {
-                    function clip(inMin, inAmount, inMax)
-                    {
-                        if(inAmount < inMin)
-                        {
-                            return inMin;
-                        }
-                        if(inAmount > inMax)
-                        {
-                            return inMax;
-                        }
-                        return inAmount;
-                    }
-                    
-                    function handlerMove($event)
-                    {
-                        //coords of AABB within browser window
-                        var rect = inElement.getBoundingClientRect();
-                        var locX = $event.clientX || $event.touches[0].clientX;
-                        var locY = $event.clientX || $event.touches[0].clientY;
-        
-                        //$event.client is the coords of the mouse within the browser window
-                        var mouseRect = {
-                            x:clip(0, locX - rect.left, rect.width),
-                            y:clip(0, locY - rect.top, rect.height)
-                        };
 
-                        inElement.dispatchEvent(new CustomEvent("drag", {
-                            detail:{
-                                x: mouseRect.x/rect.width,
-                                y: mouseRect.y/rect.height
-                            }
-                        }));
-                    }
-            
-                    function handlerDown($event)
-                    {
-                        $event.preventDefault();
-                        document.addEventListener("mousemove", handlerMove);
-                        document.addEventListener("mouseup", handlerUp);
-            
-                        document.addEventListener("touchmove", handlerMove);
-                        document.addEventListener("touchend", handlerUp);
-            
-                        handlerMove($event);
-                        
-                        inElement.dispatchEvent(new CustomEvent("dragstart"));
-                    }
-            
-                    function handlerUp($event)
-                    {
-                        document.removeEventListener("mousemove", handlerMove);
-                        document.removeEventListener("mouseup", handlerUp);
-            
-                        document.removeEventListener("touchmove", handlerMove);
-                        document.removeEventListener("touchend", handlerUp);
-            
-                        inElement.dispatchEvent(new CustomEvent("dragstop"));
-                    }
-                    
-                    inElement.addEventListener("mousedown", handlerDown);
-                    inElement.addEventListener("touchstart", handlerDown);
-                }
-            });
-        </script>
-        
         <!-- tone generator -->
         <script>
             var Tone = {};
@@ -158,30 +86,38 @@
             };
             Tone.Fade = function(inDB)
             {
-                Tone.GainDB.gain.value = inDB*0.01;
+                Tone.GainDB.gain.value = inDB;
             };
         </script>
        
        <!-- tone/slider component -->
        <script>
-            Vue.component('tone', {
-                props:['value'],
+            Vue.component('Tone', {
+                props:{
+                    value:{
+                        type:Number,
+                        default:0.5
+                    },
+                    frequency:{
+                        type:Number,
+                        default:440
+                    },
+                    steps:{
+                        type:Number,
+                        default:20
+                    }
+                },
                 data: function()
                 {
                     return {
-                        pos:this.value
-                    }  
+                        Pos: {
+                            X:0,
+                            Y:this.Snap(this.Clip(0, this.value, 1))
+                        }
+                    };
                 },
-                mounted: function()
-                {
-                    var inElement = this.$el;
-                    var context = this;
-                    
-                    console.log(context);
-                    
-                    //this.pos = this.value;
-                    
-                    function clip(inMin, inAmount, inMax)
+                methods:{
+                    Clip:function(inMin, inAmount, inMax)
                     {
                         if(inAmount < inMin)
                         {
@@ -192,104 +128,69 @@
                             return inMax;
                         }
                         return inAmount;
-                    }
-                    
-                    function handlerMove($event)
+                    },
+                    Snap:function(inAmount)
+                    {
+                        return Math.floor(inAmount*this.steps)/this.steps;
+                    },
+                    HandlerMove: function(inEvent)
                     {
                         //coords of AABB within browser window
-                        var rect = inElement.getBoundingClientRect();
-                        var locX = $event.clientX || $event.touches[0].clientX;
-                        var locY = $event.clientY || $event.touches[0].clientY;
+                        var rect = this.$el.getBoundingClientRect();
+                        var locX = inEvent.clientX || inEvent.touches[0].clientX;
+                        var locY = inEvent.clientY || inEvent$event.touches[0].clientY;
         
-                        //$event.client is the coords of the mouse within the browser window
-                        var mouseRect = {
-                            x:clip(0, locX - rect.left, rect.width),
-                            y:clip(0, locY - rect.top, rect.height)
-                        };
-            
-                        var mouseRelative = {
-                            x:mouseRect.x/rect.width,
-                            y:mouseRect.y/rect.height
-                        };
+                        //inEvent.client is the coords of the mouse within the browser window
+                        this.Pos.X = this.Snap(this.Clip(0, locX - rect.left, rect.width)/rect.width),
+                        this.Pos.Y = this.Snap(this.Clip(0, locY - rect.top, rect.height)/rect.height)
                         
-                        context.pos = mouseRelative.x;
-                        
-                        context.$emit('input', mouseRelative);
-                    };
-            
-                    function handlerDown($event)
+                        this.$emit('input', this.Pos.Y);
+                    },
+                    HandlerDown: function(inEvent)
                     {
-                        $event.preventDefault();
-                        document.addEventListener("mousemove", handlerMove);
-                        document.addEventListener("mouseup", handlerUp);
-                        document.addEventListener("touchmove", handlerMove);
-                        document.addEventListener("touchend", handlerUp);
+                        inEvent.preventDefault();
+                        document.addEventListener("mousemove", this.HandlerMove);
+                        document.addEventListener("mouseup", this.HandlerUp);
+                        document.addEventListener("touchmove", this.HandlerMove);
+                        document.addEventListener("touchend", this.HandlerUp);
             
-                        Tone.Setup(250, 0, 100);
+                        Tone.Setup(this.frequency, 0, this.value);
                         Tone.Time.Start();
             
-                        handlerMove($event);
-                    };
-            
-                    function handlerUp($event)
+                        this.HandlerMove(inEvent);
+                    },
+                    HandlerUp: function(inEvent)
                     {
-                        document.removeEventListener("mousemove", handlerMove);
-                        document.removeEventListener("mouseup", handlerUp);
-                        document.removeEventListener("touchmove", handlerMove);
-                        document.removeEventListener("touchend", handlerUp);
+                        document.removeEventListener("mousemove", this.HandlerMove);
+                        document.removeEventListener("mouseup", this.HandlerUp);
+                        document.removeEventListener("touchmove", this.HandlerMove);
+                        document.removeEventListener("touchend", this.HandlerUp);
                         
                         Tone.Time.Stop();
-                    };
-                    
-                    inElement.addEventListener("mousedown", handlerDown);
-                    inElement.addEventListener("touchstart", handlerDown);
+                    }
+                },
+                mounted: function()
+                {
+                    this.$el.addEventListener("mousedown", this.HandlerDown);
+                    this.$el.addEventListener("touchstart", this.HandlerDown);
+                },
+                beforeDestroy: function()
+                {
+                    this.$el.removeEventListener("mousedown", this.HandlerDown);
+                    this.$el.removeEventListener("touchstart", this.HandlerDown);
                 },
                 computed:{
                     style:function()
                     {
                         return {
-                            height: (this.pos*100)+"%",
+                            height: (this.Pos.Y*100)+"%",
                             width:"100%",
                             background:"#F00"
                         };
                     }
                 },
-                template:'<div style="width:500px; height:2000px; background:#FA0;"><div v-bind:style="style"></div></div>'
+                template:'<div style="width:50px; height:200px; background:#FA0;"><div v-bind:style="style"></div></div>'
             });
-        </script>
-        
-        <!-- slider component -->
-        <script>
-            Vue.component('slider', {
-                props:['value'],
-                mounted:function()
-                {
-                  console.log(this.$el);  
-                },
-                methods:{
-                    HandlerStart: function()
-                    {
-                        console.log("starting audio");
-                        this.$emit('test', {yep:true});
-                    }
-                },
-                template:"#TemplateSlider"
-            });
-        </script>
-        <script type="text/x-template" id="TemplateSlider">
-            <div class="Slider">
-                <div class="Data">{{value}}</div>
-                <div class="Area"
-                    v-slider
-                    v-on:drag="$emit('drag', $event)"
-                    v-on:dragstart="$emit('dragstart', $event)"
-                    v-on:dragstart="HandlerStart"
-                    v-on:dragstop="$emit('dragstop', $event)"
-                    style="width:300px; background:#fff;"
-                >
-                    <div class="Bar" style="height:50px; background:#000;" v-bind:style="{width:value*100 + '%'}"></div>
-                </div>
-            </div>
         </script>
         
         <!-- vue app -->
@@ -297,18 +198,13 @@
             var App = new Vue({
                 el:"#App",
                 data:{
-                    Value:0.1,
-                    Rect:{x:0.5, y:0.5}
+                    Test:{
+                        Volume:0.5,
+                        Frequency:4000,
+                        Fade:-1
+                    }
                 },
                 methods:{
-                    HandlerSlide: function(inEvent)
-                    {
-                        this.Rect.x = inEvent.detail.x;
-                    },
-                    HandlerTest: function(inEvent)
-                    {
-                        console.log(inEvent);
-                    }
                 }
             });
         </script>
