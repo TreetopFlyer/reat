@@ -23,8 +23,9 @@
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body>
+        
         <div id="App">
-            <Tone v-model="Test.Volume" frequency="440"></Tone>
+            <Tone v-model="Test.Volume" v-bind:Frequency="Test.Frequency" v-bind:Fade="Test.Fade"></Tone>
         </div>
 
         <!-- tone generator -->
@@ -94,25 +95,33 @@
        <script>
             Vue.component('Tone', {
                 props:{
-                    value:{
+                    Volume:{
                         type:Number,
                         default:0.5
                     },
-                    frequency:{
+                    Frequency:{
                         type:Number,
                         default:440
                     },
-                    steps:{
+                    Fade:{
+                        type:Number,
+                        default:0
+                    },
+                    Steps:{
                         type:Number,
                         default:20
                     }
+                },
+                model:{
+                    prop:"Volume",
+                    event:"Drag"
                 },
                 data: function()
                 {
                     return {
                         Pos: {
                             X:0,
-                            Y:this.Snap(this.Clip(0, this.value, 1))
+                            Y:this.Snap(this.Clip(0, this.Volume, 1))
                         }
                     };
                 },
@@ -131,7 +140,7 @@
                     },
                     Snap:function(inAmount)
                     {
-                        return Math.floor(inAmount*this.steps)/this.steps;
+                        return Math.floor(inAmount*this.Steps)/this.Steps;
                     },
                     HandlerMove: function(inEvent)
                     {
@@ -144,7 +153,8 @@
                         this.Pos.X = this.Snap(this.Clip(0, locX - rect.left, rect.width)/rect.width),
                         this.Pos.Y = this.Snap(this.Clip(0, locY - rect.top, rect.height)/rect.height)
                         
-                        this.$emit('input', this.Pos.Y);
+                        this.$emit("Drag", this.Pos.Y);
+                        Tone.Fade(this.Pos.Y);
                     },
                     HandlerDown: function(inEvent)
                     {
@@ -154,10 +164,12 @@
                         document.addEventListener("touchmove", this.HandlerMove);
                         document.addEventListener("touchend", this.HandlerUp);
             
-                        Tone.Setup(this.frequency, 0, this.value);
+                        Tone.Setup(this.Frequency, 0, this.Volume);
                         Tone.Time.Start();
             
                         this.HandlerMove(inEvent);
+                        
+                        this.$emit("DragStart", {});
                     },
                     HandlerUp: function(inEvent)
                     {
@@ -167,6 +179,7 @@
                         document.removeEventListener("touchend", this.HandlerUp);
                         
                         Tone.Time.Stop();
+                        this.$emit("DragStop", {});
                     }
                 },
                 mounted: function()
@@ -199,7 +212,7 @@
                 el:"#App",
                 data:{
                     Test:{
-                        Volume:0.5,
+                        Volume:0.3,
                         Frequency:4000,
                         Fade:-1
                     }
@@ -208,5 +221,6 @@
                 }
             });
         </script>
+        
     </body>
 </html>
