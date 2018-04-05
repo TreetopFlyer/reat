@@ -2,40 +2,31 @@
 <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        <!-- custom event polyfill -->
+        <script>
+            (function () {
+            
+              if ( typeof window.CustomEvent === "function" ) return false;
+            
+              function CustomEvent ( event, params ) {
+                params = params || { bubbles: false, cancelable: false, detail: undefined };
+                var evt = document.createEvent( 'CustomEvent' );
+                evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+                return evt;
+               }
+            
+              CustomEvent.prototype = window.Event.prototype;
+            
+              window.CustomEvent = CustomEvent;
+            })();
+        </script>
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body>
         <div id="App">
-            <input type="range" min="0" max="100" step="10" style="width:50px; height:200px; writing-mode: bt-lr; -webkit-appearance: slider-vertical;"/>
+            <Tone v-model="Test.Volume" v-bind:Frequency="Test.Frequency" v-bind:Fade="Test.Fade"></Tone>
         </div>
-        
-        <!-- lerp -->
-        <script>
-            var Lerp = {
-                Get: function(inMin, inAmount, inMax)
-                {
-                    return (inAmount - inMin)/(inMax - inMin);
-                },
-                Set: function(inMin, inAmount, inMax)
-                {
-                    return inMin + inAmount*(inMax - inMin);
-                },
-                Clip: function(inMin, inAmount, inMax)
-                {
-                    if(inAmount < inMin)
-                    {
-                        return inMin;
-                    }
-                    if(inAmount > inMax)
-                    {
-                        return inMax;
-                    }
-                    return inAmount;
-                }
-            }
-        </script>
-        
-        <!-- tone -->
+        <!-- tone generator -->
         <script>
             var Tone = {};
             Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
@@ -98,20 +89,122 @@
             };
         </script>
 
-        <!-- test -->
-        <script>
-            var TestSet = function()
-            {
-                return {
-                    HighLeft: {db:1,  lr:1,  hz:4000},
-                    HighRight:{db:1,  lr:-1, hz:4000},
-                    LowLeft:  {db:1,  lr:1,  hz:250 },
-                    LowRight: {db:1,  lr:-1, hz:250 }
-                };  
-            };
+       <!-- tone/slider component -->
+       <script>
+            Vue.component('Tone', {
+                props:{
+                    Volume:{
+                        type:Number,
+                        default:0.5
+                    },
+                    Frequency:{
+                        type:Number,
+                        default:440
+                    },
+                    Fade:{
+                        type:Number,
+                        default:0
+                    },
+                    Steps:{
+                        type:Number,
+                        default:20
+                    }
+                },
+                model:{
+                    prop:"Volume",
+                    event:"Drag"
+                },
+                data: function()
+                {
+                    return {
+                        Pos: {
+                            X:0,
+                            Y:this.Snap(this.Clip(0, this.Volume, 1))
+                        }
+                    };
+                },
+                methods:{
+                    Clip:function(inMin, inAmount, inMax)
+                    {
+                        if(inAmount < inMin)
+                        {
+                            return inMin;
+                        }
+                        if(inAmount > inMax)
+                        {
+                            return inMax;
+                        }
+                        return inAmount;
+                    },
+                    Snap:function(inAmount)
+                    {
+                        return Math.floor(inAmount*this.Steps)/this.Steps;
+                    },
+                    HandlerMove: function(inEvent)
+                    {
+                        //coords of AABB within browser window
+                        var rect = this.$el.getBoundingClientRect();
+                        var locX = inEvent.clientX || inEvent.touches[0].clientX;
+                        var locY = inEvent.clientY || inEvent$event.touches[0].clientY;
+        
+                        //inEvent.client is the coords of the mouse within the browser window
+                        this.Pos.X = this.Snap(this.Clip(0, locX - rect.left, rect.width)/rect.width),
+                        this.Pos.Y = this.Snap(this.Clip(0, locY - rect.top, rect.height)/rect.height)
+                        
+                        this.$emit("Drag", this.Pos.Y);
+                        Tone.Fade(this.Pos.Y);
+                    },
+                    HandlerDown: function(inEvent)
+                    {
+                        inEvent.preventDefault();
+                        document.addEventListener("mousemove", this.HandlerMove);
+                        document.addEventListener("mouseup", this.HandlerUp);
+                        document.addEventListener("touchmove", this.HandlerMove);
+                        document.addEventListener("touchend", this.HandlerUp);
+            
+                        Tone.Setup(this.Frequency, 0, this.Volume);
+                        Tone.Time.Start();
+            
+                        this.HandlerMove(inEvent);
+                        
+                        this.$emit("DragStart", {});
+                    },
+                    HandlerUp: function(inEvent)
+                    {
+                        document.removeEventListener("mousemove", this.HandlerMove);
+                        document.removeEventListener("mouseup", this.HandlerUp);
+                        document.removeEventListener("touchmove", this.HandlerMove);
+                        document.removeEventListener("touchend", this.HandlerUp);
+                        
+                        Tone.Time.Stop();
+                        this.$emit("DragStop", {});
+                    }
+                },
+                mounted: function()
+                {
+                    this.$el.addEventListener("mousedown", this.HandlerDown);
+                    this.$el.addEventListener("touchstart", this.HandlerDown);
+                },
+                beforeDestroy: function()
+                {
+                    this.$el.removeEventListener("mousedown", this.HandlerDown);
+                    this.$el.removeEventListener("touchstart", this.HandlerDown);
+                },
+                computed:{
+                    style:function()
+                    {
+                        return {
+                            height: (this.Pos.Y*100)+"%",
+                            width:"100%",
+                            background:"#F00"
+                        };
+                    }
+                },
+                template:'<div style="width:50px; height:200px; background:#FA0;"><div v-bind:style="style"></div></div>'
+            });
         </script>
-
-        <!-- app -->
+        
+        <!-- vue app -->
         <script>
             var App = new Vue({
                 el:"#App",
@@ -121,17 +214,13 @@
                 },
                 data:{
                     Test:{
-                        Normal: TestSet(),
-                        Protected: TestSet()
+                        Volume:0.3,
+                        Frequency:4000,
+                        Fade:-1
                     }
+                },
+                methods:{
                 }
-            });
-        </script>
-        
-        <!-- Slider component -->
-        <script>
-            Vue.component("slider", {
-                
             });
         </script>
     </body>
