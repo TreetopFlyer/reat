@@ -85,40 +85,40 @@
                                 <div class="Channel Right">
                                     <div class="Test High" ng-repeat="Test in [TestNormal.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                     <div class="Test Low" ng-repeat="Test in [TestNormal.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="Channel Left">
                                     <div class="Test High" ng-repeat="Test in [TestNormal.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                     <div class="Test Low" ng-repeat="Test in [TestNormal.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -156,40 +156,40 @@
                                 <div class="Channel Right">
                                     <div class="Test High" ng-repeat="Test in [TestProtected.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                     <div class="Test Low" ng-repeat="Test in [TestProtected.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="Channel Left">
                                     <div class="Test High" ng-repeat="Test in [TestProtected.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                     <div class="Test Low" ng-repeat="Test in [TestProtected.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
                                         <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
+                                            <span>{[{Test.Clean()}]}</span>
                                             <i class="icon-ok"></i>
                                         </div>
                                         <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
+                                            <div class="Bar" style="height:{[{Test.DB*100}]}%;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -241,6 +241,9 @@
         <script>
             angular
             .module("App", ["ngDrag"])
+            .config(["$interpolateProvider", function(inInterpolate){
+                inInterpolate.startSymbol('{[{').endSymbol('}]}');
+            }])
             .factory("Tone", [function()
             {
                 var Tone = {};
