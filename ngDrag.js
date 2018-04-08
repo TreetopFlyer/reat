@@ -85,7 +85,9 @@ angular.module("ngDrag", [])
 
             $document.bind("touchmove", linker.handlerMove);
             $document.bind("touchend", linker.handlerUp);
-
+            
+            $document.bind("mouseleave", linker.handlerUp);
+            
             if(handlerStart)
             {
                 handlerStart($event);
@@ -96,11 +98,15 @@ angular.module("ngDrag", [])
 
         linker.handlerUp = function($event)
         {
+            console.log("Handler Up");
+            
             $document.unbind("mousemove", linker.handlerMove);
             $document.unbind("mouseup", linker.handlerUp);
 
             $document.unbind("touchmove", linker.handlerMove);
             $document.unbind("touchend", linker.handlerUp);
+
+            $document.unbind("mouseleave", linker.handlerUp);
 
             if(handlerStop)
             {

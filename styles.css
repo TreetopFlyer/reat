@@ -1,98 +1,38 @@
-body
-{
-    margin:0;
-    background:#000;
-    
-}
-.Band
-{
-    text-align:center;
-}
-.Band .Center
-{
-    max-width:600px;
-    margin:0 auto;
-}
-.Pad
-{
-    display:block;
-    padding:1rem 2rem 1rem 2rem;
-}
-.Band.Title
-{
-    background:#eeeeee;
-}
-.Band.Title .Center
-{
-    background:#fff;
-}
-.Band.Menu
-{
-    display:none;
-}
-.Band.Menu a
-{
-    display:block;
-    overflow:hidden;
-    height:0;
-    padding:0;
-    margin:0;
-    border:0;
-    transition:all 0.4s;
-}
-.Menu .Band.Menu a
-{
-    height:3em;
-    padding:0.5em;
-    border:1px;
-}
-.Band.Slide
-{
-    color:#fff;
-}
-.Band.Slide .Center
-{
-    background:#111;
-}
 
-form
-{
-    text-align:left;
-}
 
+#App
+{
+    position: absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
 .TestSet
 {
     overflow:hidden;
-    margin-top:1rem;
+    padding:5px;
 }
-.TestSet .Channel
+.Test
 {
-    width:40%;
-    max-width:120px;
-    overflow:hidden;
+    height:100%;
+    width:50px;
+    margin:5px;
 }
-.TestSet .Channel.Left
-{
-    float:left;
-}
-.TestSet .Channel.Right
-{
-    float:right;
-}
-.Test.High
+.Test.Left
 {
     float:left;
-    width:40%;
 }
-.Test.Low
+.Test.Right
 {
     float:right;
-    width:40%;
+    width:50px;
 }
 .Test .Cap
 {
     width:100%;
     height:50px;
+    text-align:center;
 }
 .Test .Cap i
 {
@@ -113,94 +53,35 @@ form
     width:100%;
     background:#333;
 }
+.Slider:hover
+{
+    box-shadow: 0px 0px 10px #aaa;
+    z-index:999;
+}
 .Slider .Bar
 {
-    transition:all 0.4s;
+    transition:height 0.3s;
     position:absolute;
     bottom:0;
     left:0;
     width:100%;
-    background:#ccc;
-    border-radius:5px;
+    background-color:#ccc;
 }
-.Test:hover .Bar
+.Test.High .Bar
 {
-    box-shadow: 0px 0px 10px #fff;
-    border:3px solid #fff;
-    z-index:999;
+    background-image:url(WaveHigh.png);
+    background-position-y: center;
+}
+.Test.Low .Bar
+{
+    background-image:url(WaveLow.png);
+    background-position-y: center;
 }
 .Test.Active .Slider .Bar
 {
-    background:#FA0;
+    background-color:#FA0;
 }
 .Test.Completed .Bar
 {
-    background:#0A0;
-}
-
-
-.Slideshow
-{
-    position:relative;
-    overflow:hidden;
-    transition:height 0.4s;
-}
-.Slide
-{
-    display:block;
-    position:absolute;
-    top:0;
-    width:100%;
-    height:100%;
-    z-index:1;
-}
-.Slide.Active
-{
-    position:relative;
-    z-index:10;
-    background:#000;
-}
-.Slideshow .Slide.Active
-{
-    animation: EnterForward ease-out 0.4s;
-    animation-fill-mode: both;
-}
-.Slideshow.Backward .Slide.Active
-{
-    animation: EnterBackward ease-out 0.4s;
-    animation-fill-mode: both;
-}
-.Slideshow.Initial .Slide
-{
-    animation-duration: 0s;
-}
-.Slideshow .Slide
-{
-    animation: ExitForward ease-out 0.4s;
-    animation-fill-mode: both;
-}
-.Slideshow.Backward .Slide
-{
-    animation: ExitBackward ease-out 0.4s;
-    animation-fill-mode: both;
-}
-@keyframes EnterForward
-{
-    from{left:100%}
-    to{left:0%}
-}
-@keyframes EnterBackward
-{
-    from{left:-100%}
-    to{left:0%}
-}
-@keyframes ExitForward
-{
-    from{left:0%}
-    to{left:-100%}
-}
-@keyframes ExitBackward
-{
-    from{left:0%}
-    to{left:100%}
+    background-color:#0A0;
 }
