@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
+        
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        
         <!-- Tone -->
         <script>
 var Tone = {};
@@ -66,7 +68,6 @@ Tone.Init = function()
     Tone.GainBeep.connect(Tone.Panner);
     Tone.GainBeep.gain.setValueAtTime(0, Tone.Context.currentTime);
     Tone.Panner.connect(Tone.Context.destination);
-    Tone.Context.resume();
 };
 Tone.Change = function(inAdjustable, inValue)
 {
@@ -84,6 +85,7 @@ Tone.Frequency = function(inValue)
 {
     Tone.Change(Tone.Oscillator.frequency, inValue);
 };
+Tone.Init();
         </script>
         
         <!-- CustomEvent polyfill -->
@@ -134,7 +136,7 @@ Tone.Frequency = function(inValue)
 var Drag = {};
 Drag.Setup = function(inElement)
 {
-    HandlerMove = function(inEvent)
+    var HandlerMove = function(inEvent)
     {
         //coords of AABB within browser window
         var rect = inElement.getBoundingClientRect();
@@ -152,7 +154,7 @@ Drag.Setup = function(inElement)
         
         return mouse;
     };
-    HandlerDown = function(inEvent)
+    var HandlerDown = function(inEvent)
     {
         inEvent.preventDefault();
         document.addEventListener("mousemove", HandlerMove);
@@ -165,7 +167,7 @@ Drag.Setup = function(inElement)
         inElement.dispatchEvent( event );
         HandlerMove(inEvent);
     };
-    HandlerUp = function(inEvent)
+    var HandlerUp = function(inEvent)
     {
         document.removeEventListener("mousemove", HandlerMove);
         document.removeEventListener("mouseup", HandlerUp);
@@ -181,7 +183,9 @@ Drag.Setup = function(inElement)
     inElement.addEventListener("touchstart", HandlerDown);
 };
         </script>
+        
         <link rel="stylesheet" type="text/css" href="styles.css">
+        
     </head>
     <body>
         <div id="App">
@@ -195,7 +199,8 @@ Drag.Setup = function(inElement)
                 <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
-                    <Slider></Slider>
+                    <button>Reset</button>
+                    <Test-Set></Test-Set>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
@@ -253,16 +258,19 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = true;
                         this.Adjusted = true;
+                        Tone.Beep.Start();
                     },
                     HandlerDragStop:function()
                     {
                         this.Adjusting = false;
+                        Tone.Beep.Stop();
                     },
                     Update:function(inValue)
                     {
                         this.Stepped = Math.floor(inValue*this.steps)/this.steps;
                         this.Percent = this.Stepped*100;
                         this.Mapped = Lerp.Set(this.min, this.Stepped, this.max);
+                        Tone.Volume(this.Mapped);
                     },
                     Reset:function()
                     {
@@ -278,8 +286,13 @@ Drag.Setup = function(inElement)
             })
         </script>
         <script type="x-template" id="TemplateSlider">
-            <div class="Slider" v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}" v-drag v-on:drag="HandlerDrag" v-on:dragstart="HandlerDragStart" v-on:dragstop="HandlerDragStop" style="height:200px; width:50px; background:#ddd;">
-                <div class="Bar" style="width:100%; background:#a00;" v-bind:style="{height:Percent+'%'}">
+            <div class="Slider"
+                v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
+                v-drag
+                v-on:drag="HandlerDrag"
+                v-on:dragstart="HandlerDragStart"
+                v-on:dragstop="HandlerDragStop">
+                <div class="Bar" v-bind:style="{height:Percent+'%'}">
                 </div>
             </div>
         </script>
@@ -324,6 +337,73 @@ Drag.Setup = function(inElement)
             </div>
         </script>
 
+        <!-- Test set -->
+        <script>
+            Vue.component("TestSet", {
+                props:{},
+                data:function()
+                {
+                    return{
+                        Done:false,
+                        Started:false
+                    };
+                },
+                methods:{
+                    IsDone:function()
+                    {
+                        var i;
+                        for(i=0; i<this.$children.length; i++)
+                        {
+                            if(!this.$children[i].$data.Adjusted)
+                            {
+                                return false;
+                            }
+                        }
+                        return true;
+                    },
+                    IsStarted:function()
+                    {
+                        var i;
+                        for(i=0; i<this.$children.length; i++)
+                        {
+                            if(this.$children[i].$data.Adjusted)
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    },
+                    Update:function()
+                    {
+                        this.Done = this.IsDone();
+                        this.Started = this.IsStarted();
+                    },
+                    Reset:function()
+                    {
+                        var i;
+                        for(i=0; i<this.$children.length; i++)
+                        {
+                            this.$children[i].Reset();
+                        }
+                        this.Done = false;
+                        this.Started = false;
+                    }
+                },
+                mounted:function()
+                {
+                },
+                template:"#TemplateTestSet"
+            })
+        </script>
+        <script type="x-template" id="TemplateTestSet">
+            <div class="Test">
+                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
+                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
+                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
+                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
+            </div>
+        </script>
+
         <!-- vue app -->
         <script>
             var App = new Vue({
@@ -332,6 +412,12 @@ Drag.Setup = function(inElement)
                     SlidesState:[],
                     SlidesBackward:true,
                     SlidesActive:0,
+                    TestSliders:{
+                        HighLeft:  {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:-1},
+                        HighRight: {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:+1},
+                        LowLeft:   {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:-1},
+                        LowRight:  {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:+1}
+                    }
                 },
                 methods:{
                     SlidesChange:function(inIndex, inBackward)

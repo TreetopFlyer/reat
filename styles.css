@@ -60,58 +60,17 @@ form
     text-align:left;
 }
 
-.TestSet
-{
-    overflow:hidden;
-    margin-top:1rem;
-}
-.TestSet .Channel
-{
-    width:40%;
-    max-width:120px;
-    overflow:hidden;
-}
-.TestSet .Channel.Left
-{
-    float:left;
-}
-.TestSet .Channel.Right
-{
-    float:right;
-}
-.Test.High
-{
-    float:left;
-    width:40%;
-}
-.Test.Low
-{
-    float:right;
-    width:40%;
-}
-.Test .Cap
-{
-    width:100%;
-    height:50px;
-}
-.Test .Cap i
-{
-    display:none;
-}
-.Test.Active .Cap i
-{
-    display:none !important;
-}
-.Test.Completed .Cap i
-{
-    display:block;
-}
+
 .Slider
 {
     position:relative;
     height:250px;
-    width:100%;
+    width:50px;
     background:#333;
+    border:2px solid #999;
+    border-left:none;
+    border-right:none;
+    overflow:hidden;
 }
 .Slider .Bar
 {
@@ -119,24 +78,16 @@ form
     bottom:0;
     left:0;
     width:100%;
-    background:#ccc;
-    border-radius:5px;
+    background:#999;
 }
-.Test:hover .Bar
+.Slider.Adjusted .Bar
 {
-    box-shadow: 0px 0px 10px #fff;
-    border:3px solid #fff;
-    z-index:999;
+    background:#4F0;
 }
-.Test.Active .Slider .Bar
+.Slider.Adjusting .Bar
 {
-    background:#FA0;
+    background:#F40;
 }
-.Test.Completed .Bar
-{
-    background:#0A0;
-}
-
 
 .Slideshow
 {
