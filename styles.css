@@ -144,6 +144,7 @@ form
     position:relative;
     overflow:hidden;
     transition:height 0.4s;
+    border:1px solid #00F;
 }
 .Slide
 {
@@ -160,26 +161,22 @@ form
     z-index:10;
     background:#000;
 }
-.Slideshow .Slide.Active
+.Slide.Active.Forward
 {
     animation: EnterForward ease-out 0.4s;
     animation-fill-mode: both;
 }
-.Slideshow.Backward .Slide.Active
+.Slide.Active.Backward
 {
     animation: EnterBackward ease-out 0.4s;
     animation-fill-mode: both;
 }
-.Slideshow.Initial .Slide
-{
-    animation-duration: 0s;
-}
-.Slideshow .Slide
+.Slide.Inactive.Forward
 {
     animation: ExitForward ease-out 0.4s;
     animation-fill-mode: both;
 }
-.Slideshow.Backward .Slide
+.Slide.Inactive.Backward
 {
     animation: ExitBackward ease-out 0.4s;
     animation-fill-mode: both;

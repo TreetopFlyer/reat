@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        <!-- custom event polyfill -->
+        <script>
+            (function () {
+              if ( typeof window.CustomEvent === "function" ) return false;
+              function CustomEvent ( event, params ) {
+                params = params || { bubbles: false, cancelable: false, detail: undefined };
+                var evt = document.createEvent( 'CustomEvent' );
+                evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+                return evt;
+               }
+              CustomEvent.prototype = window.Event.prototype;
+              window.CustomEvent = CustomEvent;
+            })();
+        </script>
+        <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+        <div id="App">
+            <button v-on:click="SlidesChange(0)">1</button>
+            <button v-on:click="SlidesChange(1)">2</button>
+            <button v-on:click="SlidesChange(2)">3</button>
+            <button v-on:click="SlidesBackward = true">backward</button>
+            <button v-on:click="SlidesBackward = false">forward</button>
+            <div class="Slideshow">
+                <Slide v-bind:active="SlidesState[0]">
+                    <h2>Part One</h2>
+                    <p>Please remove ear protection and make sure headphones fit correctly</p>
+                </Slide> 
+                <Slide v-bind:active="SlidesState[1]">
+                    <h2>Part Two</h2>
+                    <p>Please insert ear protection and make sure headphones fit correctly</p>
+                </Slide> 
+            </div>
+
+        </div>
+
+        <script>
+            Vue.component("Slide", {
+               props:["active"],
+               template:"#TemplateSlide"
+            });
+        </script>
+        <script type="x-template" id="TemplateSlide">
+            <div class="Band Slide" v-bind:class="active">
+                <div class="Center">
+                    <div class="Pad">
+                        <slot></slot>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <!-- vue app -->
+        <script>
+            var App = new Vue({
+                el:"#App",
+                data:{
+                    customclass:"wihoisghwg",
+                    SlidesState:["", "", ""],
+                    SlidesBackward:true,
+                    SlidesActive:0,
+                },
+                computed:{
+                    Suffix:function()
+                    {
+                        if(this.SlidesBackward)
+                            return "Backward";
+                        return "Forward";
+                    }
+                },
+                methods:{
+                    SlidesChange:function(inIndex)
+                    {
+                        if(inIndex == this.SlidesActive){return;}
+
+                        Vue.set(this.SlidesState, this.SlidesActive, "Inactive "+this.Suffix);
+                        this.SlidesActive = inIndex;
+                        Vue.set(this.SlidesState, this.SlidesActive, "Active "+this.Suffix);
+                    }
+                },
+                mounted: function()
+                {
+                    Vue.set(this.SlidesState, this.SlidesActive, "Active "+this.Suffix);
+                }
+            });
+        </script>
+    </body>
+</html>
