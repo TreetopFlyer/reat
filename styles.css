@@ -115,7 +115,6 @@ form
 }
 .Slider .Bar
 {
-    transition:all 0.4s;
     position:absolute;
     bottom:0;
     left:0;

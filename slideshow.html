@@ -2,19 +2,184 @@
 <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
-        <!-- custom event polyfill -->
+        <!-- Tone -->
         <script>
-            (function () {
-              if ( typeof window.CustomEvent === "function" ) return false;
-              function CustomEvent ( event, params ) {
-                params = params || { bubbles: false, cancelable: false, detail: undefined };
-                var evt = document.createEvent( 'CustomEvent' );
-                evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
-                return evt;
-               }
-              CustomEvent.prototype = window.Event.prototype;
-              window.CustomEvent = CustomEvent;
-            })();
+var Tone = {};
+Tone.Beep = {
+    Timer:0,
+    Counter:0,
+    Pattern:[0, 1, 0, 1, 0, 1, 0, 0],
+    Quit:true,
+    Done:true,
+    Update: function()
+    {
+        if(Tone.Beep.Counter >= Tone.Beep.Pattern.length)
+        {
+            if(Tone.Beep.Quit)
+            {
+                clearInterval(Tone.Beep.Timer);
+                Tone.Change(Tone.GainBeep.gain, 0);
+                Tone.Context.close().then(function(){
+                    
+                    Tone.Beep.Done = true;
+                });
+            }
+            Tone.Beep.Counter = 0;
+        }
+        Tone.Change(Tone.GainBeep.gain, Tone.Beep.Pattern[Tone.Beep.Counter]);
+        Tone.Beep.Counter++;
+    },
+    Start: function()
+    {
+        if(!Tone.Beep.Quit)
+            return;
+            
+        if(Tone.Beep.Done)
+        {
+            Tone.Init();
+        }
+        
+        Tone.Beep.Done = false;
+        Tone.Beep.Quit = false;
+        Tone.Beep.Counter = 0;
+        clearInterval(Tone.Beep.Timer);
+        Tone.Beep.Timer = setInterval(Tone.Beep.Update, 120);
+        Tone.Beep.Update();
+    },
+    Stop: function()
+    {
+        Tone.Beep.Quit = true;
+    }
+};
+Tone.Init = function()
+{
+    Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
+    Tone.GainBeep = Tone.Context.createGain();
+    Tone.GainDB = Tone.Context.createGain();
+    Tone.Panner = Tone.Context.createStereoPanner();
+    Tone.Oscillator = Tone.Context.createOscillator();
+    Tone.Oscillator.start();
+
+    Tone.Oscillator.connect(Tone.GainDB);
+    Tone.GainDB.connect(Tone.GainBeep);
+    Tone.GainDB.gain.setValueAtTime(0, Tone.Context.currentTime);
+    Tone.GainBeep.connect(Tone.Panner);
+    Tone.GainBeep.gain.setValueAtTime(0, Tone.Context.currentTime);
+    Tone.Panner.connect(Tone.Context.destination);
+    Tone.Context.resume();
+};
+Tone.Change = function(inAdjustable, inValue)
+{
+    inAdjustable.linearRampToValueAtTime(inValue, Tone.Context.currentTime+0.008);
+}
+Tone.Pan = function(inValue)
+{
+    Tone.Change(Tone.Panner.pan, inValue);
+};
+Tone.Volume = function(inValue)
+{
+    Tone.Change(Tone.GainDB.gain, inValue);
+};
+Tone.Frequency = function(inValue)
+{
+    Tone.Change(Tone.Oscillator.frequency, inValue);
+};
+        </script>
+        
+        <!-- CustomEvent polyfill -->
+        <script>
+(function ()
+{
+    if ( typeof window.CustomEvent === "function" ) return false;
+    function CustomEvent ( event, params )
+    {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent( 'CustomEvent' );
+        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+        return evt;
+    }
+    CustomEvent.prototype = window.Event.prototype;
+    window.CustomEvent = CustomEvent;
+})();
+        </script>
+        
+        <!-- Lerp -->
+        <script>
+        var Lerp = {
+            Get: function(inMin, inAmount, inMax)
+            {
+                return (inAmount - inMin)/(inMax - inMin);
+            },
+            Set: function(inMin, inAmount, inMax)
+            {
+                return inMin + inAmount*(inMax - inMin);
+            },
+            Clip: function(inMin, inAmount, inMax)
+            {
+                if(inAmount < inMin)
+                {
+                    return inMin;
+                }
+                if(inAmount > inMax)
+                {
+                    return inMax;
+                }
+                return inAmount;
+            }
+        };
+        </script>
+        
+        <!-- Drag -->
+        <script>
+var Drag = {};
+Drag.Setup = function(inElement)
+{
+    HandlerMove = function(inEvent)
+    {
+        //coords of AABB within browser window
+        var rect = inElement.getBoundingClientRect();
+        var locX = inEvent.clientX || inEvent.touches[0].clientX;
+        var locY = inEvent.clientY || inEvent.touches[0].clientY;
+    
+        //inEvent.client is the coords of the mouse within the browser window
+        var mouse = {
+            x:Lerp.Clip(0, locX - rect.left, rect.width)/rect.width,
+            y:Lerp.Clip(0, locY - rect.top, rect.height)/rect.height
+        };
+        
+        var event = new CustomEvent("drag", {bubbles:true, detail:mouse});
+        inElement.dispatchEvent( event );
+        
+        return mouse;
+    };
+    HandlerDown = function(inEvent)
+    {
+        inEvent.preventDefault();
+        document.addEventListener("mousemove", HandlerMove);
+        document.addEventListener("mouseup", HandlerUp);
+        document.addEventListener("touchmove", HandlerMove);
+        document.addEventListener("touchend", HandlerUp);
+        document.addEventListener("mouseleave", HandlerUp);
+    
+        var event = new CustomEvent("dragstart", {bubbles:true});
+        inElement.dispatchEvent( event );
+        HandlerMove(inEvent);
+    };
+    HandlerUp = function(inEvent)
+    {
+        document.removeEventListener("mousemove", HandlerMove);
+        document.removeEventListener("mouseup", HandlerUp);
+        document.removeEventListener("touchmove", HandlerMove);
+        document.removeEventListener("touchend", HandlerUp);
+        document.removeEventListener("mouseleave", HandlerUp);
+        
+        var event = new CustomEvent("dragstop", {bubbles:true});
+        inElement.dispatchEvent( event );
+    };
+    
+    inElement.addEventListener("mousedown", HandlerDown);
+    inElement.addEventListener("touchstart", HandlerDown);
+};
         </script>
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
@@ -30,6 +195,7 @@
                 <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
+                    <Slider></Slider>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
@@ -42,6 +208,81 @@
             </div>
 
         </div>
+
+        <!-- slider component -->
+        <script>
+            Vue.directive("Drag", {
+                bind:function(inElement)
+                {
+                    Drag.Setup(inElement);
+                }
+            })
+        </script>
+        <script>
+            Vue.component("Slider", {
+                props:{
+                    steps:{
+                        type:Number,
+                        default:10
+                    },
+                    min:{
+                        type:Number,
+                        default:0
+                    },
+                    max:{
+                        type:Number,
+                        default:0.8
+                    }
+                },
+                data:function()
+                {
+                    return{
+                        Stepped:0,
+                        Percent:0,
+                        Mapped:0,
+                        Adjusted:false,
+                        Adjusting:false
+                    };
+                },
+                methods:{
+                    HandlerDrag:function(inEvent)
+                    {
+                      this.Update(1-inEvent.detail.y);
+                    },
+                    HandlerDragStart:function()
+                    {
+                        this.Adjusting = true;
+                        this.Adjusted = true;
+                    },
+                    HandlerDragStop:function()
+                    {
+                        this.Adjusting = false;
+                    },
+                    Update:function(inValue)
+                    {
+                        this.Stepped = Math.floor(inValue*this.steps)/this.steps;
+                        this.Percent = this.Stepped*100;
+                        this.Mapped = Lerp.Set(this.min, this.Stepped, this.max);
+                    },
+                    Reset:function()
+                    {
+                        this.Update(0.8);
+                        this.Adjusted = false;
+                        this.Adjusting = false;
+                    }
+                },
+                mounted:function(){
+                    this.Reset();
+                },
+                template:"#TemplateSlider"
+            })
+        </script>
+        <script type="x-template" id="TemplateSlider">
+            <div class="Slider" v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}" v-drag v-on:drag="HandlerDrag" v-on:dragstart="HandlerDragStart" v-on:dragstop="HandlerDragStop" style="height:200px; width:50px; background:#ddd;">
+                <div class="Bar" style="width:100%; background:#a00;" v-bind:style="{height:Percent+'%'}">
+                </div>
+            </div>
+        </script>
 
         <!-- slide component -->
         <script>
