@@ -143,8 +143,6 @@ form
 {
     position:relative;
     overflow:hidden;
-    transition:height 0.4s;
-    border:1px solid #00F;
 }
 .Slide
 {
