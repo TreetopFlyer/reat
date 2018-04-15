@@ -20,18 +20,23 @@
     </head>
     <body>
         <div id="App">
-            <button v-on:click="SlidesChange(0)">1</button>
-            <button v-on:click="SlidesChange(1)">2</button>
-            <button v-on:click="SlidesChange(2)">3</button>
-            <button v-on:click="SlidesBackward = true">backward</button>
-            <button v-on:click="SlidesBackward = false">forward</button>
+            <button v-on:click="SlidesChange(0, false)">1 forward</button>
+            <button v-on:click="SlidesChange(1, false)">2 forward</button>
+            <button v-on:click="SlidesChange(2, false)">3 forward</button>
+            <button v-on:click="SlidesChange(0, true)">1 backward</button>
+            <button v-on:click="SlidesChange(1, true)">2 backward</button>
+            <button v-on:click="SlidesChange(2, true)">3 backward</button>
             <div class="Slideshow">
-                <Slide v-bind:active="SlidesState[0]">
+                <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
                 </Slide> 
-                <Slide v-bind:active="SlidesState[1]">
+                <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
+                    <p>Please insert ear protection and make sure headphones fit correctly</p>
+                </Slide> 
+                <Slide v-bind:active="SlidesState[2]" v-bind:backward="SlidesBackward">
+                    <h2>Part Three</h2>
                     <p>Please insert ear protection and make sure headphones fit correctly</p>
                 </Slide> 
             </div>
@@ -40,12 +45,34 @@
 
         <script>
             Vue.component("Slide", {
-               props:["active"],
+                props:["active", "backward"],
+                data:function()
+                {
+                    return {
+                        Prefix:"",
+                        Suffix:"",
+                        CSS:""
+                   };
+                },
+                watch:{
+                   active:function(inNew, inOld)
+                   {
+                       if(inNew){this.Prefix = "Active";}
+                       else{this.Prefix = "Inactive";}
+                       
+                       if(this.backward){this.Suffix = "Backward";}
+                       else{this.Suffix = "Forward";}
+                       
+                       this.CSS = this.Prefix+" "+this.Suffix;
+                       
+                       return inNew;
+                   }
+                },
                template:"#TemplateSlide"
             });
         </script>
         <script type="x-template" id="TemplateSlide">
-            <div class="Band Slide" v-bind:class="active">
+            <div class="Band Slide" v-bind:class="CSS">
                 <div class="Center">
                     <div class="Pad">
                         <slot></slot>
@@ -60,31 +87,25 @@
                 el:"#App",
                 data:{
                     customclass:"wihoisghwg",
-                    SlidesState:["", "", ""],
+                    SlidesState:[false, false, false],
                     SlidesBackward:true,
                     SlidesActive:0,
                 },
-                computed:{
-                    Suffix:function()
-                    {
-                        if(this.SlidesBackward)
-                            return "Backward";
-                        return "Forward";
-                    }
-                },
                 methods:{
-                    SlidesChange:function(inIndex)
+                    SlidesChange:function(inIndex, inBackward)
                     {
                         if(inIndex == this.SlidesActive){return;}
-
-                        Vue.set(this.SlidesState, this.SlidesActive, "Inactive "+this.Suffix);
+                        
+                        this.SlidesBackward = inBackward;
+                        
+                        Vue.set(this.SlidesState, this.SlidesActive, false);
                         this.SlidesActive = inIndex;
-                        Vue.set(this.SlidesState, this.SlidesActive, "Active "+this.Suffix);
+                        Vue.set(this.SlidesState, this.SlidesActive, true);
                     }
                 },
                 mounted: function()
                 {
-                    Vue.set(this.SlidesState, this.SlidesActive, "Active "+this.Suffix);
+                    Vue.set(this.SlidesState, this.SlidesActive, true);
                 }
             });
         </script>
