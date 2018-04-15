@@ -43,30 +43,32 @@
 
         </div>
 
+        <!-- slide component -->
         <script>
             Vue.component("Slide", {
                 props:["active", "backward"],
                 data:function()
                 {
                     return {
-                        Prefix:"",
-                        Suffix:"",
                         CSS:""
                    };
                 },
                 watch:{
                    active:function(inNew, inOld)
                    {
-                       if(inNew){this.Prefix = "Active";}
-                       else{this.Prefix = "Inactive";}
+                       var prefix, suffix;
                        
-                       if(this.backward){this.Suffix = "Backward";}
-                       else{this.Suffix = "Forward";}
+                       if(inNew){prefix = "Active";}
+                       else{prefix = "Inactive";}
                        
-                       this.CSS = this.Prefix+" "+this.Suffix;
+                       if(this.backward){suffix = "Backward";}
+                       else{suffix = "Forward";}
                        
-                       return inNew;
+                       this.CSS = prefix+" "+suffix;
                    }
+                },
+                mounted:function()
+                {
                 },
                template:"#TemplateSlide"
             });
@@ -86,7 +88,7 @@
             var App = new Vue({
                 el:"#App",
                 data:{
-                    SlidesState:[false, false, false],
+                    SlidesState:[],
                     SlidesBackward:true,
                     SlidesActive:0,
                 },
@@ -104,6 +106,15 @@
                 },
                 mounted: function()
                 {
+                    var i;
+                    for(i=0; i<this.$children.length; i++)
+                    {
+                        var child = this.$children[i];
+                        if(child.$options._componentTag == "slide")
+                        {
+                            this.SlidesState.push(false);
+                        }
+                    }
                     Vue.set(this.SlidesState, this.SlidesActive, true);
                 }
             });
