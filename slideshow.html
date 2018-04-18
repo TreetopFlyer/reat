@@ -200,7 +200,7 @@ Drag.Setup = function(inElement)
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
                     <button>Reset</button>
-                    <Test-Set></Test-Set>
+                    <Test-Set v-bind="TestSliders"></Test-Set>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
@@ -211,91 +211,7 @@ Drag.Setup = function(inElement)
                     <p>Please insert ear protection and make sure headphones fit correctly</p>
                 </Slide> 
             </div>
-
         </div>
-
-        <!-- slider component -->
-        <script>
-            Vue.directive("Drag", {
-                bind:function(inElement)
-                {
-                    Drag.Setup(inElement);
-                }
-            })
-        </script>
-        <script>
-            Vue.component("Slider", {
-                props:{
-                    steps:{
-                        type:Number,
-                        default:10
-                    },
-                    min:{
-                        type:Number,
-                        default:0
-                    },
-                    max:{
-                        type:Number,
-                        default:0.8
-                    }
-                },
-                data:function()
-                {
-                    return{
-                        Stepped:0,
-                        Percent:0,
-                        Mapped:0,
-                        Adjusted:false,
-                        Adjusting:false
-                    };
-                },
-                methods:{
-                    HandlerDrag:function(inEvent)
-                    {
-                      this.Update(1-inEvent.detail.y);
-                    },
-                    HandlerDragStart:function()
-                    {
-                        this.Adjusting = true;
-                        this.Adjusted = true;
-                        Tone.Beep.Start();
-                    },
-                    HandlerDragStop:function()
-                    {
-                        this.Adjusting = false;
-                        Tone.Beep.Stop();
-                    },
-                    Update:function(inValue)
-                    {
-                        this.Stepped = Math.floor(inValue*this.steps)/this.steps;
-                        this.Percent = this.Stepped*100;
-                        this.Mapped = Lerp.Set(this.min, this.Stepped, this.max);
-                        Tone.Volume(this.Mapped);
-                    },
-                    Reset:function()
-                    {
-                        this.Update(0.8);
-                        this.Adjusted = false;
-                        this.Adjusting = false;
-                    }
-                },
-                mounted:function(){
-                    this.Reset();
-                },
-                template:"#TemplateSlider"
-            })
-        </script>
-        <script type="x-template" id="TemplateSlider">
-            <div class="Slider"
-                v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
-                v-drag
-                v-on:drag="HandlerDrag"
-                v-on:dragstart="HandlerDragStart"
-                v-on:dragstop="HandlerDragStop">
-                <div class="Bar" v-bind:style="{height:Percent+'%'}">
-                </div>
-            </div>
-        </script>
 
         <!-- slide component -->
         <script>
@@ -337,16 +253,106 @@ Drag.Setup = function(inElement)
             </div>
         </script>
 
+        <!-- slider component -->
+        <script>
+            Vue.directive("Drag", {
+                bind:function(inElement)
+                {
+                    Drag.Setup(inElement);
+                }
+            })
+        </script>
+        <script>
+            Vue.component("Slider", {
+                props:{
+                    Steps:{
+                        type:Number,
+                        default:10
+                    },
+                    Min:{
+                        type:Number,
+                        default:0
+                    },
+                    Max:{
+                        type:Number,
+                        default:0.8
+                    }
+                },
+                data:function()
+                {
+                    return{
+                        Stepped:0,
+                        Percent:0,
+                        Mapped:0,
+                        Adjusted:false,
+                        Adjusting:false
+                    };
+                },
+                methods:{
+                    HandlerDrag:function(inEvent)
+                    {
+                      this.Update(1-inEvent.detail.y);
+                    },
+                    HandlerDragStart:function()
+                    {
+                        this.Adjusting = true;
+                        this.Adjusted = true;
+                        Tone.Beep.Start();
+                    },
+                    HandlerDragStop:function()
+                    {
+                        this.Adjusting = false;
+                        Tone.Beep.Stop();
+                    },
+                    Update:function(inValue)
+                    {
+                        this.Stepped = Math.floor(inValue*this.Steps)/this.Steps;
+                        this.Percent = this.Stepped*100;
+                        this.Mapped = Lerp.Set(this.Min, this.Stepped, this.Max);
+                        Tone.Volume(this.Mapped);
+                    },
+                    Reset:function()
+                    {
+                        this.Update(0.8);
+                        this.Adjusted = false;
+                        this.Adjusting = false;
+                    }
+                },
+                mounted:function(){
+                    this.Reset();
+                },
+                template:"#TemplateSlider"
+            })
+        </script>
+        <script type="x-template" id="TemplateSlider">
+            <div class="Slider"
+                v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
+                v-drag
+                v-on:drag="HandlerDrag"
+                v-on:dragstart="HandlerDragStart"
+                v-on:dragstop="HandlerDragStop">
+                <div class="Bar" v-bind:style="{height:Percent+'%'}">
+                </div>
+            </div>
+        </script>
+
         <!-- Test set -->
         <script>
             Vue.component("TestSet", {
-                props:{},
+                props:["HighLeft", "HighRight", "LowLeft", "LowRight"],
                 data:function()
                 {
                     return{
                         Done:false,
                         Started:false
                     };
+                },
+                watch:{
+                    Done:function(inNew, inOld)
+                    {
+                        
+                        console.log("TestDone watcher:", inNew);
+                    }
                 },
                 methods:{
                     IsDone:function()
@@ -375,6 +381,7 @@ Drag.Setup = function(inElement)
                     },
                     Update:function()
                     {
+                        console.log("Test update")
                         this.Done = this.IsDone();
                         this.Started = this.IsStarted();
                     },
@@ -397,10 +404,10 @@ Drag.Setup = function(inElement)
         </script>
         <script type="x-template" id="TemplateTestSet">
             <div class="Test">
-                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
-                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
-                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
-                <Slider v-bind:min="0.3" v-bind:max="0.9"></Slider>
+                <Slider v-bind="HighLeft" v-on:click="Update"></Slider>
+                <Slider v-bind="HighRight" v-on:click="Update"></Slider>
+                <Slider v-bind="LowLeft" v-on:click="Update"></Slider>
+                <Slider v-bind="LowRight" v-on:click="Update"></Slider>
             </div>
         </script>
 
@@ -446,5 +453,6 @@ Drag.Setup = function(inElement)
                 }
             });
         </script>
+        
     </body>
 </html>
