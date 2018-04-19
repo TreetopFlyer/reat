@@ -200,17 +200,18 @@ Drag.Setup = function(inElement)
                 <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
-                    <Test-Set v-bind="TestSliders">
-                        <div slot-scope="parent">
-                            <button v-on:click="$root.SlidesPrevious">Back</button>
-                            <button v-on:click="parent.Reset">Reset</button>
-                            <button v-on:click="$root.SlidesNext(false)">Next</button>
-                        </div>
-                    </Test-Set>
+                    <Test-Set v-bind="TestSliders"></Test-Set>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
                     <p>Please insert ear protection and make sure headphones fit correctly</p>
+                    <Test-Set v-bind="TestSliders">
+                        <div slot-scope="TestSet">
+                            <button v-on:click="$root.SlidesPrevious">Back</button>
+                            <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
+                            <button v-on:click="$root.SlidesNext" v-show="TestSet.Done">Next</button>
+                        </div>
+                    </Test-Set>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[2]" v-bind:backward="SlidesBackward">
                     <h2>Part Three</h2>
@@ -354,13 +355,6 @@ Drag.Setup = function(inElement)
                         Started:false
                     };
                 },
-                watch:{
-                    Done:function(inNew, inOld)
-                    {
-                        
-                        console.log("TestDone watcher:", inNew);
-                    }
-                },
                 methods:{
                     IsDone:function()
                     {
@@ -405,14 +399,17 @@ Drag.Setup = function(inElement)
                 },
                 mounted:function()
                 {
-                    console.log("root test:", this.$root);
                 },
                 template:"#TemplateTestSet"
             })
         </script>
         <script type="x-template" id="TemplateTestSet">
             <div class="Test">
-                <slot v-bind="this"></slot>
+                <slot v-bind="this">
+                    <button v-on:click="$root.SlidesPrevious">Back Default</button>
+                    <button v-on:click="Reset"    v-show="Started">Reset Default</button>
+                    <button v-on:click="$root.SlidesNext" v-show="Done">Next Default</button>
+                </slot>
                 <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
                 <Slider v-bind="HighRight" v-on:done="Update"></Slider>
                 <Slider v-bind="LowLeft"   v-on:done="Update"></Slider>
