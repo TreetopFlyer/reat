@@ -186,7 +186,7 @@ Drag.Setup = function(inElement)
         <div id="App">
             <Slideshow>
                 <template slot-scope="Slideshow">
-                    <Slide v-bind:active="Slideshow.SlidesState[0]" v-bind:backward="Slideshow.SlidesBackward">
+                    <Slide>
                         <h2>Part One</h2>
                         <p>Please remove ear protection and make sure headphones fit correctly</p>
                         <Test-Set>
@@ -197,7 +197,7 @@ Drag.Setup = function(inElement)
                             </div>
                         </Test-Set>
                     </Slide> 
-                    <Slide v-bind:active="Slideshow.SlidesState[1]" v-bind:backward="Slideshow.SlidesBackward">
+                    <Slide>
                         <h2>Part Two</h2>
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
                         <Test-Set>
@@ -208,7 +208,7 @@ Drag.Setup = function(inElement)
                             </div>
                         </Test-Set>
                     </Slide> 
-                    <Slide v-bind:active="Slideshow.SlidesState[2]" v-bind:backward="Slideshow.SlidesBackward">
+                    <Slide>
                         <h2>Part Three</h2>
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
                     </Slide>
@@ -282,62 +282,63 @@ Drag.Setup = function(inElement)
                 data: function()
                 {
                     return{
-                        SlidesState:[],
-                        SlidesBackward:true,
-                        SlidesActive:0
+                        Children:[],
+                        Active:0
                     };
                 },
                 methods:{
                     SlidesChange:function(inIndex, inBackward)
                     {
-                        if(inIndex == this.SlidesActive){return;}
-                        
-                        this.SlidesBackward = inBackward;
-                        
-                        Vue.set(this.SlidesState, this.SlidesActive, false);
-                        this.SlidesActive = inIndex;
-                        Vue.set(this.SlidesState, this.SlidesActive, true);
+                        if(inIndex == this.Active){return;}
+
+                        this.Children[this.Active].Deactivate(inBackward);
+                        this.Active = inIndex;
+                        this.Children[this.Active].Activate(inBackward);
                     },
                     SlidesPrevious:function(inBackward)
                     {
                         var index;
-                        if(this.SlidesActive == 0)
+                        if(this.Active == 0)
                         {
-                            index = this.SlidesState.length-1;
+                            index = this.Children.length-1;
                         }
                         else
                         {
-                            index = this.SlidesActive-1;
+                            index = this.Active-1;
                         }
                         this.SlidesChange(index, inBackward);
                     },
                     SlidesNext:function(inBackward)
                     {
                         var index;
-                        if(this.SlidesActive == this.SlidesState.length-1)
+                        if(this.Active == this.Children.length-1)
                         {
                             index = 0;
                         }
                         else
                         {
-                            index = this.SlidesActive+1;
+                            index = this.Active+1;
                         }
                         this.SlidesChange(index, inBackward);
+                    },
+                    FindChildren:function()
+                    {
+                        var i;
+                        this.Children = [];
+                        for(i=0; i<this.$children.length; i++)
+                        {
+                            var child = this.$children[i];
+                            if(child.$options._componentTag == "slide")
+                            {
+                                this.Children.push(child);
+                            }
+                        }
                     }
                 },
                 mounted: function()
                 {
-                    var i;
-                    for(i=0; i<this.$children.length; i++)
-                    {
-                        var child = this.$children[i];
-                        if(child.$options._componentTag == "slide")
-                        {
-                            this.SlidesState.push(false);
-                            console.log(child);
-                        }
-                    }
-                    Vue.set(this.SlidesState, this.SlidesActive, true);
+                    this.FindChildren();
+                    this.Children[this.Active].Activate(false);
                 },
                 template:"#TemplateSlideshow"
             })
