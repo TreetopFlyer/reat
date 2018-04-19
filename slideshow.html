@@ -21,10 +21,7 @@ Tone.Beep = {
             {
                 clearInterval(Tone.Beep.Timer);
                 Tone.Change(Tone.GainBeep.gain, 0);
-                Tone.Context.close().then(function(){
-                    
-                    Tone.Beep.Done = true;
-                });
+                Tone.Beep.Done = true;
             }
             Tone.Beep.Counter = 0;
         }
@@ -36,11 +33,7 @@ Tone.Beep = {
         if(!Tone.Beep.Quit)
             return;
             
-        if(Tone.Beep.Done)
-        {
-            Tone.Init();
-        }
-        
+
         Tone.Beep.Done = false;
         Tone.Beep.Quit = false;
         Tone.Beep.Counter = 0;
@@ -83,7 +76,7 @@ Tone.Volume = function(inValue)
 };
 Tone.Frequency = function(inValue)
 {
-    Tone.Change(Tone.Oscillator.frequency, 1000);
+    Tone.Change(Tone.Oscillator.frequency, inValue);
     console.log("tone frequency set to", inValue);
 };
 Tone.Init();
@@ -432,10 +425,10 @@ Drag.Setup = function(inElement)
                     return{
                         Done:false,
                         Started:false,
-                        HighLeft:  {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:-1},
-                        HighRight: {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:+1},
-                        LowLeft:   {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:-1},
-                        LowRight:  {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:+1}
+                        HighLeft:  {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
+                        HighRight: {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
+                        LowLeft:   {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
+                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
                     };
                 },
                 methods:{
