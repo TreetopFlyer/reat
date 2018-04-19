@@ -188,6 +188,7 @@ Drag.Setup = function(inElement)
         
     </head>
     <body>
+        
         <div id="App">
             <button v-on:click="SlidesChange(0, false)">1 forward</button>
             <button v-on:click="SlidesChange(1, false)">2 forward</button>
@@ -199,8 +200,13 @@ Drag.Setup = function(inElement)
                 <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
                     <h2>Part One</h2>
                     <p>Please remove ear protection and make sure headphones fit correctly</p>
-                    <button>Reset</button>
-                    <Test-Set v-bind="TestSliders"></Test-Set>
+                    <Test-Set v-bind="TestSliders">
+                        <div slot-scope="parent">
+                            <button v-on:click="$root.SlidesPrevious">Back</button>
+                            <button v-on:click="parent.Reset">Reset</button>
+                            <button v-on:click="$root.SlidesNext(false)">Next</button>
+                        </div>
+                    </Test-Set>
                 </Slide> 
                 <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
                     <h2>Part Two</h2>
@@ -303,6 +309,7 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = false;
                         Tone.Beep.Stop();
+                        this.$emit("done", {});
                     },
                     Update:function(inValue)
                     {
@@ -398,16 +405,18 @@ Drag.Setup = function(inElement)
                 },
                 mounted:function()
                 {
+                    console.log("root test:", this.$root);
                 },
                 template:"#TemplateTestSet"
             })
         </script>
         <script type="x-template" id="TemplateTestSet">
             <div class="Test">
-                <Slider v-bind="HighLeft" v-on:click="Update"></Slider>
-                <Slider v-bind="HighRight" v-on:click="Update"></Slider>
-                <Slider v-bind="LowLeft" v-on:click="Update"></Slider>
-                <Slider v-bind="LowRight" v-on:click="Update"></Slider>
+                <slot v-bind="this"></slot>
+                <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
+                <Slider v-bind="HighRight" v-on:done="Update"></Slider>
+                <Slider v-bind="LowLeft"   v-on:done="Update"></Slider>
+                <Slider v-bind="LowRight"  v-on:done="Update"></Slider>
             </div>
         </script>
 
@@ -424,7 +433,9 @@ Drag.Setup = function(inElement)
                         HighRight: {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:+1},
                         LowLeft:   {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:-1},
                         LowRight:  {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:+1}
-                    }
+                    },
+                    TestResultsNormal:    {Started:false, Done:false, Output:[]},
+                    TestResultsProtected: {Started:false, Done:false, Output:[]},
                 },
                 methods:{
                     SlidesChange:function(inIndex, inBackward)
@@ -436,6 +447,32 @@ Drag.Setup = function(inElement)
                         Vue.set(this.SlidesState, this.SlidesActive, false);
                         this.SlidesActive = inIndex;
                         Vue.set(this.SlidesState, this.SlidesActive, true);
+                    },
+                    SlidesPrevious:function(inBackward)
+                    {
+                        var index;
+                        if(this.SlidesActive == 0)
+                        {
+                            index = this.SlidesState.length-1;
+                        }
+                        else
+                        {
+                            index = this.SlidesActive-1;
+                        }
+                        this.SlidesChange(index, inBackward);
+                    },
+                    SlidesNext:function(inBackward)
+                    {
+                        var index;
+                        if(this.SlidesActive == this.SlidesState.length-1)
+                        {
+                            index = 0;
+                        }
+                        else
+                        {
+                            index = this.SlidesActive+1;
+                        }
+                        this.SlidesChange(index, inBackward);
                     }
                 },
                 mounted: function()
