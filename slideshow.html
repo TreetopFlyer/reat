@@ -190,34 +190,36 @@ Drag.Setup = function(inElement)
     <body>
         
         <div id="App">
-            <button v-on:click="SlidesChange(0, false)">1 forward</button>
-            <button v-on:click="SlidesChange(1, false)">2 forward</button>
-            <button v-on:click="SlidesChange(2, false)">3 forward</button>
-            <button v-on:click="SlidesChange(0, true)">1 backward</button>
-            <button v-on:click="SlidesChange(1, true)">2 backward</button>
-            <button v-on:click="SlidesChange(2, true)">3 backward</button>
-            <div class="Slideshow">
-                <Slide v-bind:active="SlidesState[0]" v-bind:backward="SlidesBackward">
-                    <h2>Part One</h2>
-                    <p>Please remove ear protection and make sure headphones fit correctly</p>
-                    <Test-Set v-bind="TestSliders"></Test-Set>
-                </Slide> 
-                <Slide v-bind:active="SlidesState[1]" v-bind:backward="SlidesBackward">
-                    <h2>Part Two</h2>
-                    <p>Please insert ear protection and make sure headphones fit correctly</p>
-                    <Test-Set v-bind="TestSliders">
-                        <div slot-scope="TestSet">
-                            <button v-on:click="$root.SlidesPrevious">Back</button>
-                            <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
-                            <button v-on:click="$root.SlidesNext" v-show="TestSet.Done">Next</button>
-                        </div>
-                    </Test-Set>
-                </Slide> 
-                <Slide v-bind:active="SlidesState[2]" v-bind:backward="SlidesBackward">
-                    <h2>Part Three</h2>
-                    <p>Please insert ear protection and make sure headphones fit correctly</p>
-                </Slide> 
-            </div>
+            <Slideshow>
+                <template slot-scope="Slideshow">
+                    <Slide v-bind:active="Slideshow.SlidesState[0]" v-bind:backward="Slideshow.SlidesBackward">
+                        <h2>Part One</h2>
+                        <p>Please remove ear protection and make sure headphones fit correctly</p>
+                        <Test-Set>
+                            <div slot-scope="TestSet">
+                                <button v-on:click="Slideshow.SlidesPrevious">Back</button>
+                                <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
+                            </div>
+                        </Test-Set>
+                    </Slide> 
+                    <Slide v-bind:active="Slideshow.SlidesState[1]" v-bind:backward="Slideshow.SlidesBackward">
+                        <h2>Part Two</h2>
+                        <p>Please insert ear protection and make sure headphones fit correctly</p>
+                        <Test-Set>
+                            <div slot-scope="TestSet">
+                                <button v-on:click="Slideshow.SlidesPrevious">Back</button>
+                                <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
+                            </div>
+                        </Test-Set>
+                    </Slide> 
+                    <Slide v-bind:active="Slideshow.SlidesState[2]" v-bind:backward="Slideshow.SlidesBackward">
+                        <h2>Part Three</h2>
+                        <p>Please insert ear protection and make sure headphones fit correctly</p>
+                    </Slide>
+                </template>
+            </Slideshow>
         </div>
 
         <!-- slide component -->
@@ -259,6 +261,78 @@ Drag.Setup = function(inElement)
                 </div>
             </div>
         </script>
+        
+        <!-- slideshow component -->
+        <script>
+            Vue.component("Slideshow", {
+                data: function()
+                {
+                    return{
+                        SlidesState:[],
+                        SlidesBackward:true,
+                        SlidesActive:0
+                    };
+                },
+                methods:{
+                    SlidesChange:function(inIndex, inBackward)
+                    {
+                        if(inIndex == this.SlidesActive){return;}
+                        
+                        this.SlidesBackward = inBackward;
+                        
+                        Vue.set(this.SlidesState, this.SlidesActive, false);
+                        this.SlidesActive = inIndex;
+                        Vue.set(this.SlidesState, this.SlidesActive, true);
+                    },
+                    SlidesPrevious:function(inBackward)
+                    {
+                        var index;
+                        if(this.SlidesActive == 0)
+                        {
+                            index = this.SlidesState.length-1;
+                        }
+                        else
+                        {
+                            index = this.SlidesActive-1;
+                        }
+                        this.SlidesChange(index, inBackward);
+                    },
+                    SlidesNext:function(inBackward)
+                    {
+                        var index;
+                        if(this.SlidesActive == this.SlidesState.length-1)
+                        {
+                            index = 0;
+                        }
+                        else
+                        {
+                            index = this.SlidesActive+1;
+                        }
+                        this.SlidesChange(index, inBackward);
+                    }
+                },
+                mounted: function()
+                {
+                    var i;
+                    for(i=0; i<this.$children.length; i++)
+                    {
+                        var child = this.$children[i];
+                        if(child.$options._componentTag == "slide")
+                        {
+                            this.SlidesState.push(false);
+                        }
+                    }
+                    Vue.set(this.SlidesState, this.SlidesActive, true);
+                },
+                template:"#TemplateSlideshow"
+            })
+        </script>
+        <script type="x-template" id="TemplateSlideshow">
+            <div class="Slideshow">
+                <slot v-bind="this">
+                </slot>
+            </div>
+        </script>
 
         <!-- slider component -->
         <script>
@@ -283,6 +357,10 @@ Drag.Setup = function(inElement)
                     Max:{
                         type:Number,
                         default:0.8
+                    },
+                    Hz:{
+                        type:Number,
+                        default:440
                     }
                 },
                 data:function()
@@ -304,6 +382,8 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = true;
                         this.Adjusted = true;
+                        Tone.Frequency(this.Hz);
+                        console.log("Hz:", this.Hz);
                         Tone.Beep.Start();
                     },
                     HandlerDragStop:function()
@@ -347,12 +427,15 @@ Drag.Setup = function(inElement)
         <!-- Test set -->
         <script>
             Vue.component("TestSet", {
-                props:["HighLeft", "HighRight", "LowLeft", "LowRight"],
                 data:function()
                 {
                     return{
                         Done:false,
-                        Started:false
+                        Started:false,
+                        HighLeft:  {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:-1},
+                        HighRight: {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:+1},
+                        LowLeft:   {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:-1},
+                        LowRight:  {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:+1}
                     };
                 },
                 methods:{
@@ -422,68 +505,8 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    SlidesState:[],
-                    SlidesBackward:true,
-                    SlidesActive:0,
-                    TestSliders:{
-                        HighLeft:  {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:-1},
-                        HighRight: {Min:0,   Max:0.1, Steps:20, Hz:4000, Pan:+1},
-                        LowLeft:   {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:-1},
-                        LowRight:  {Min:0.1, Max:1,   Steps:20, Hz:250,  Pan:+1}
-                    },
                     TestResultsNormal:    {Started:false, Done:false, Output:[]},
                     TestResultsProtected: {Started:false, Done:false, Output:[]},
-                },
-                methods:{
-                    SlidesChange:function(inIndex, inBackward)
-                    {
-                        if(inIndex == this.SlidesActive){return;}
-                        
-                        this.SlidesBackward = inBackward;
-                        
-                        Vue.set(this.SlidesState, this.SlidesActive, false);
-                        this.SlidesActive = inIndex;
-                        Vue.set(this.SlidesState, this.SlidesActive, true);
-                    },
-                    SlidesPrevious:function(inBackward)
-                    {
-                        var index;
-                        if(this.SlidesActive == 0)
-                        {
-                            index = this.SlidesState.length-1;
-                        }
-                        else
-                        {
-                            index = this.SlidesActive-1;
-                        }
-                        this.SlidesChange(index, inBackward);
-                    },
-                    SlidesNext:function(inBackward)
-                    {
-                        var index;
-                        if(this.SlidesActive == this.SlidesState.length-1)
-                        {
-                            index = 0;
-                        }
-                        else
-                        {
-                            index = this.SlidesActive+1;
-                        }
-                        this.SlidesChange(index, inBackward);
-                    }
-                },
-                mounted: function()
-                {
-                    var i;
-                    for(i=0; i<this.$children.length; i++)
-                    {
-                        var child = this.$children[i];
-                        if(child.$options._componentTag == "slide")
-                        {
-                            this.SlidesState.push(false);
-                        }
-                    }
-                    Vue.set(this.SlidesState, this.SlidesActive, true);
                 }
             });
         </script>
