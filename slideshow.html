@@ -83,7 +83,8 @@ Tone.Volume = function(inValue)
 };
 Tone.Frequency = function(inValue)
 {
-    Tone.Change(Tone.Oscillator.frequency, inValue);
+    Tone.Change(Tone.Oscillator.frequency, 1000);
+    console.log("tone frequency set to", inValue);
 };
 Tone.Init();
         </script>
@@ -383,7 +384,6 @@ Drag.Setup = function(inElement)
                         this.Adjusting = true;
                         this.Adjusted = true;
                         Tone.Frequency(this.Hz);
-                        console.log("Hz:", this.Hz);
                         Tone.Beep.Start();
                     },
                     HandlerDragStop:function()
