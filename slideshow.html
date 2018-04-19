@@ -192,7 +192,7 @@ Drag.Setup = function(inElement)
                         <Test-Set>
                             <div slot-scope="TestSet">
                                 <button v-on:click="Slideshow.SlidesPrevious">Back</button>
-                                <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
                                 <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
@@ -203,7 +203,7 @@ Drag.Setup = function(inElement)
                         <Test-Set>
                             <div slot-scope="TestSet">
                                 <button v-on:click="Slideshow.SlidesPrevious">Back</button>
-                                <button v-on:click="TestSet.Reset"    v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
                                 <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
@@ -229,16 +229,36 @@ Drag.Setup = function(inElement)
                 watch:{
                    active:function(inNew, inOld)
                    {
-                       var prefix, suffix;
-                       
-                       if(inNew){prefix = "Active";}
-                       else{prefix = "Inactive";}
-                       
-                       if(this.backward){suffix = "Backward";}
-                       else{suffix = "Forward";}
-                       
-                       this.CSS = prefix+" "+suffix;
+                       if(inNew)
+                       {
+                           this.Activate(this.backward);
+                       }
+                       else
+                       {
+                           this.Deactivate(this.backward);
+                       }
                    }
+                },
+                methods:{
+                    Direction:function(inBackward)
+                    {
+                        if(inBackward)
+                        {
+                            return "Backward";
+                        }
+                        else
+                        {
+                            return "Forward";
+                        }
+                    },
+                    Activate:function(inBackward)
+                    {
+                        this.CSS = "Active "+this.Direction(inBackward);
+                    },
+                    Deactivate:function(inBackward)
+                    {
+                        this.CSS = "Inactive "+this.Direction(inBackward);
+                    }
                 },
                 mounted:function()
                 {
@@ -314,6 +334,7 @@ Drag.Setup = function(inElement)
                         if(child.$options._componentTag == "slide")
                         {
                             this.SlidesState.push(false);
+                            console.log(child);
                         }
                     }
                     Vue.set(this.SlidesState, this.SlidesActive, true);
@@ -412,8 +433,7 @@ Drag.Setup = function(inElement)
                 v-on:drag="HandlerDrag"
                 v-on:dragstart="HandlerDragStart"
                 v-on:dragstop="HandlerDragStop">
-                <div class="Bar" v-bind:style="{height:Percent+'%'}">
-                </div>
+                <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
             </div>
         </script>
 
@@ -483,7 +503,7 @@ Drag.Setup = function(inElement)
             <div class="Test">
                 <slot v-bind="this">
                     <button v-on:click="$root.SlidesPrevious">Back Default</button>
-                    <button v-on:click="Reset"    v-show="Started">Reset Default</button>
+                    <button v-on:click="Reset" v-show="Started">Reset Default</button>
                     <button v-on:click="$root.SlidesNext" v-show="Done">Next Default</button>
                 </slot>
                 <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
