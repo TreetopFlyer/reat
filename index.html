@@ -1,436 +1,561 @@
+---
+---
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta charset="UTF-8">
-        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-        <script src="ngDrag.js"></script>
-        <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-        <link rel="stylesheet" href="styles.css">
+        
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        
+        <!-- Tone -->
+        <script>
+var Tone = {};
+Tone.Beep = {
+    Timer:0,
+    Counter:0,
+    Pattern:[0, 1, 0, 1, 0, 1, 0, 0],
+    Quit:true,
+    Done:true,
+    Update: function()
+    {
+        if(Tone.Beep.Counter >= Tone.Beep.Pattern.length)
+        {
+            if(Tone.Beep.Quit)
+            {
+                clearInterval(Tone.Beep.Timer);
+                Tone.Change(Tone.GainBeep.gain, 0);
+                Tone.Beep.Done = true;
+            }
+            Tone.Beep.Counter = 0;
+        }
+        Tone.Change(Tone.GainBeep.gain, Tone.Beep.Pattern[Tone.Beep.Counter]);
+        Tone.Beep.Counter++;
+    },
+    Start: function()
+    {
+        if(!Tone.Beep.Quit)
+            return;
+            
+
+        Tone.Beep.Done = false;
+        Tone.Beep.Quit = false;
+        Tone.Beep.Counter = 0;
+        clearInterval(Tone.Beep.Timer);
+        Tone.Beep.Timer = setInterval(Tone.Beep.Update, 120);
+        Tone.Beep.Update();
+    },
+    Stop: function()
+    {
+        Tone.Beep.Quit = true;
+    }
+};
+Tone.Init = function()
+{
+    Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
+    Tone.GainBeep = Tone.Context.createGain();
+    Tone.GainDB = Tone.Context.createGain();
+    Tone.Panner = Tone.Context.createStereoPanner();
+    Tone.Oscillator = Tone.Context.createOscillator();
+    Tone.Oscillator.start();
+
+    Tone.Oscillator.connect(Tone.GainDB);
+    Tone.GainDB.connect(Tone.GainBeep);
+    Tone.GainDB.gain.setValueAtTime(0, Tone.Context.currentTime);
+    Tone.GainBeep.connect(Tone.Panner);
+    Tone.GainBeep.gain.setValueAtTime(0, Tone.Context.currentTime);
+    Tone.Panner.connect(Tone.Context.destination);
+};
+Tone.Change = function(inAdjustable, inValue)
+{
+    inAdjustable.linearRampToValueAtTime(inValue, Tone.Context.currentTime+0.008);
+}
+Tone.Pan = function(inValue)
+{
+    Tone.Change(Tone.Panner.pan, inValue);
+};
+Tone.Volume = function(inValue)
+{
+    Tone.Change(Tone.GainDB.gain, inValue);
+};
+Tone.Frequency = function(inValue)
+{
+    Tone.Change(Tone.Oscillator.frequency, inValue);
+};
+Tone.Init();
+        </script>
+        
+        <!-- CustomEvent polyfill -->
+        <script>
+(function ()
+{
+    if ( typeof window.CustomEvent === "function" ) return false;
+    function CustomEvent ( event, params )
+    {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent( 'CustomEvent' );
+        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+        return evt;
+    }
+    CustomEvent.prototype = window.Event.prototype;
+    window.CustomEvent = CustomEvent;
+})();
+        </script>
+        
+        <!-- Lerp -->
+        <script>
+        var Lerp = {
+            Get: function(inMin, inAmount, inMax)
+            {
+                return (inAmount - inMin)/(inMax - inMin);
+            },
+            Set: function(inMin, inAmount, inMax)
+            {
+                return inMin + inAmount*(inMax - inMin);
+            },
+            Clip: function(inMin, inAmount, inMax)
+            {
+                if(inAmount < inMin)
+                {
+                    return inMin;
+                }
+                if(inAmount > inMax)
+                {
+                    return inMax;
+                }
+                return inAmount;
+            }
+        };
+        </script>
+        
+        <!-- Drag -->
+        <script>
+var Drag = {};
+Drag.Setup = function(inElement)
+{
+    var HandlerMove = function(inEvent)
+    {
+        //coords of AABB within browser window
+        var rect = inElement.getBoundingClientRect();
+        var locX = inEvent.clientX || inEvent.touches[0].clientX;
+        var locY = inEvent.clientY || inEvent.touches[0].clientY;
+    
+        //inEvent.client is the coords of the mouse within the browser window
+        var mouse = {
+            x:Lerp.Clip(0, locX - rect.left, rect.width)/rect.width,
+            y:Lerp.Clip(0, locY - rect.top, rect.height)/rect.height
+        };
+        
+        var event = new CustomEvent("drag", {bubbles:true, detail:mouse});
+        inElement.dispatchEvent( event );
+        
+        return mouse;
+    };
+    var HandlerDown = function(inEvent)
+    {
+        inEvent.preventDefault();
+        document.addEventListener("mousemove", HandlerMove);
+        document.addEventListener("mouseup", HandlerUp);
+        document.addEventListener("touchmove", HandlerMove);
+        document.addEventListener("touchend", HandlerUp);
+        document.addEventListener("mouseleave", HandlerUp);
+    
+        var event = new CustomEvent("dragstart", {bubbles:true});
+        inElement.dispatchEvent( event );
+        HandlerMove(inEvent);
+    };
+    var HandlerUp = function(inEvent)
+    {
+        document.removeEventListener("mousemove", HandlerMove);
+        document.removeEventListener("mouseup", HandlerUp);
+        document.removeEventListener("touchmove", HandlerMove);
+        document.removeEventListener("touchend", HandlerUp);
+        document.removeEventListener("mouseleave", HandlerUp);
+        
+        var event = new CustomEvent("dragstop", {bubbles:true});
+        inElement.dispatchEvent( event );
+    };
+    
+    inElement.addEventListener("mousedown", HandlerDown);
+    inElement.addEventListener("touchstart", HandlerDown);
+};
+        </script>
+        
+        <link rel="stylesheet" type="text/css" href="styles.css">
+        
     </head>
     <body>
-    
-
-        <div ng-app="App" ng-controller="Controller" ng-cloak>
-            
-            <div>
-                <div class="Band Title">
-                    <div class="Center">
-                        <div class="Pad">
-                            <strong></strong>Soundcheck Audiology
+        
+        <div id="App">
+            <Slideshow>
+                <template slot-scope="Slideshow">
+                    
+                    <Slide>
+                        <h2>REAT Measurement Test</h2>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.Next">Start</button>
                         </div>
-                    </div>
-                </div>
-                <div class="Band Menu">
-                    <div class="Center">
-                        <div class="list-group list-group-flush">
-                          <a href="/" class="list-group-item list-group-item-action">Reset Test</a>
-                          <a href="https://soundcheckaudiology.com" class="list-group-item list-group-item-action">SoundcheckAudiology.com</a>
-                        </div>
-                    </div>
-                </div> 
-            </div>
-            
-            <div class="Slideshow" ng-class="{'Backward':!Slides.Forward, 'Initial':Slides.Initial}">
-               <div class="Band Slide" ng-class="{'Active':Slides.Slides[0]}">
-                   <div class="Center">
-                        <div class="Pad">
-                            <h3>REAT measurement</h3>
-                            <form>
-                                <div class="form-group">
-                                    <label for="InputEmail">Email address</label>
-                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com" ng-model="Email">
-                                </div>
-                                <div class="form-group">
-                                    <label for="InputName">Name</label>
-                                    <input type="text" class="form-control" id="InputName" placeholder="your name" ng-model="Name">
-                                </div>
-                            </form>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(1)">Begin <i class="icon-headphones"></i></button>
+                    </Slide>
+                    
+                    <Slide>
+                        <h2>Part One</h2>
+                        <p>Please remove ear protection and make sure headphones fit correctly</p>
+                        <Test-Set v-on:done="RecordNormal">
+                            <div class="Controls" slot-scope="TestSet">
+                                <button v-on:click="Slideshow.Previous">Back</button>
+                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
                             </div>
-                        </div>
-                   </div>
-                </div>
-                <div class="Band Slide" ng-class="{'Active':Slides.Slides[1]}">
-                   <div class="Center">
-                       <div class="Pad">
-                           <h3>This will begin a two part test.</h3>
-                            <p class="lead">Please have your headphones and ear protection ready</p>
-                            <p>
-                                Each part of the test will have four volume levels, adjusting a volume level will produce a beep. Move each level down to the exact point where you can no longer hear the tone, then proceed to the next part of the test.
-                            </p>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(0)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(2)">Part One <i class="icon-chevron-right"></i></button>
+                        </Test-Set>
+                    </Slide> 
+                    
+                    <Slide>
+                        <h2>Part Two</h2>
+                        <p>Please insert ear protection and make sure headphones fit correctly</p>
+                        <Test-Set v-on:done="RecordProtected">
+                            <div class="Controls" slot-scope="TestSet">
+                                <button v-on:click="Slideshow.Previous">Back</button>
+                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
                             </div>
-                       </div>
-                   </div>
-                </div>
-                <div class="Band Slide Test1" ng-class="{'Active':Slides.Slides[2]}">
-                   <div class="Center">
-                       <div class="Pad">
-                           <p class="lead">
-                               <strong>Part One:</strong> Put on your headphones, but do not wear ear protection.
-                            </p>
-                           <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(1)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-danger" ng-click="TestNormal.Reset()" ng-disabled="!TestNormal.PartiallyDone()">Reset <i class="icon-refresh"></i></button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(3)" ng-disabled="!TestNormal.Done()">Continue <i class="icon-chevron-right"></i></button>
-                            </div>
-                            <div class="TestSet">
-                                <div class="Channel Right">
-                                    <div class="Test High" ng-repeat="Test in [TestNormal.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="Test Low" ng-repeat="Test in [TestNormal.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="Channel Left">
-                                    <div class="Test High" ng-repeat="Test in [TestNormal.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="Test Low" ng-repeat="Test in [TestNormal.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                       </div>
-                   </div>
-                </div>
-                <div class="Band Slide" ng-class="{'Active':Slides.Slides[3]}">
-                   <div class="Center">
-                       <div class="Pad">
-                           <h2>Continue your test</h2>
-                            <p class="lead">Please have your headphones and ear protection ready</p>
-                            <p>
-                                Put in your ear protection and make sure your headphones are on correctly.
-                            </p>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(2)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(4)">Part Two <i class="icon-chevron-right"></i></button>
-                            </div>
-                       </div>
-                   </div>
-                </div>
-                <div class="Band Slide Test2" ng-class="{'Active':Slides.Slides[4]}">
-                   <div class="Center">
-                       <div class="Pad">
-                           <p class="lead">
-                               <strong>Part Two:</strong> Put in your ear protection and secure headphones.
-                            </p>
-                           <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(3)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-danger" ng-click="TestProtected.Reset()" ng-disabled="!TestProtected.PartiallyDone()">Reset <i class="icon-refresh"></i></button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(5)" ng-disabled="!TestProtected.Done()">Continue <i class="icon-chevron-right"></i></button>
-                            </div>
-                            <div class="TestSet">
-                                <div class="Channel Right">
-                                    <div class="Test High" ng-repeat="Test in [TestProtected.HighRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="Test Low" ng-repeat="Test in [TestProtected.LowRight]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="Channel Left">
-                                    <div class="Test High" ng-repeat="Test in [TestProtected.HighLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="Test Low" ng-repeat="Test in [TestProtected.LowLeft]" ng-class="{'Active':Test.Active, 'Completed':Test.Completed}">
-                                        <div class="Cap">
-                                            <span>{{Test.Clean()}}</span>
-                                            <i class="icon-ok"></i>
-                                        </div>
-                                        <div class="Slider Interactive" ng-drag ng-drag-move="Test.HandlerDrag" ng-drag-start="Test.HandlerStart" ng-drag-stop="Test.HandlerStop">
-                                            <div class="Bar" style="height:{{Test.DB*100}}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                       </div>
-                   </div>
-                </div>
-                <div class="Band Slide Done" ng-class="{'Active':Slides.Slides[5]}">
-                    <div class="Center">
-                        <div class="Pad">
-                            <h3>Submit Results</h3>
-                            <p class="lead">
-                                Please confirm your information
-                            </p>
-                            <form>
-                                <div class="form-group">
-                                    <label for="InputEmail">Email address</label>
-                                    <input type="email" class="form-control" id="InputEmail" placeholder="name@example.com" ng-model="Email">
-                                </div>
-                                <div class="form-group">
-                                    <label for="InputName">Name</label>
-                                    <input type="text" class="form-control" id="InputName" placeholder="your name" ng-model="Name">
-                                </div>
-                            </form>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-secondary" ng-click="Slides.Change(4)"><i class="icon-chevron-left"></i> Go Back</button>
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(6)">Send Results <i class="icon-chevron-right"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="Band Slide Thanks" ng-class="{'Active':Slides.Slides[6]}">
-                    <div class="Center">
-                        <div class="Pad">
-                            <h3>Thank you!</h3>
-                            <p class="lead">
-                                Your test results have been sent to Soundcheck Audiology.
-                            </p>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-primary" ng-click="Slides.Change(0)">Return</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+                        </Test-Set>
+                    </Slide> 
+                    
+                    <Slide>
+                        <h2>Part Three</h2>
+                        <p>ty all</p>
+                        <a v-bind:href="URL">View Results</a>
+                    </Slide>
+                    
+                </template>
+            </Slideshow>
         </div>
 
+        <!-- slide component -->
         <script>
-            angular
-            .module("App", ["ngDrag"])
-            .factory("Tone", [function()
-            {
-                var Tone = {};
-                Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
-                Tone.Time = {
-                    Timer:0,
-                    Counter:0,
-                    Update: function()
+            Vue.component("Slide", {
+                data:function()
+                {
+                    return {
+                        CSS:""
+                   };
+                },
+                methods:{
+                    Direction:function(inBackward)
                     {
-                        switch(Tone.Time.Counter)
+                        if(inBackward)
                         {
-                            case 0:
-                                Tone.GainBeep.gain.value = 1;
-                                break;
-                            case 1:
-                                Tone.GainBeep.gain.value = 0;
-                                break;
-                            default:
-                                Tone.Time.Counter = -1;
+                            return "Backward";
                         }
-                        Tone.Time.Counter++;
+                        else
+                        {
+                            return "Forward";
+                        }
                     },
-                    Reset: function()
+                    Activate:function(inBackward)
                     {
-                        Tone.GainBeep.gain.value = 0;
-                        Tone.Time.Counter = 0;
+                        this.CSS = "Active "+this.Direction(inBackward);
                     },
-                    Start: function()
+                    Deactivate:function(inBackward)
                     {
-                        Tone.Time.Reset();
-                        Tone.Time.Timer = setInterval(Tone.Time.Update, 100);
-                    },
-                    Stop: function()
-                    {
-                        clearInterval(Tone.Time.Timer);
-                        Tone.Time.Reset();
+                        this.CSS = "Inactive "+this.Direction(inBackward);
                     }
-                };
+                },
+                mounted:function()
+                {
+                },
+               template:"#TemplateSlide"
+            });
+        </script>
+        <script type="x-template" id="TemplateSlide">
+            <div class="Band Slide" v-bind:class="CSS">
+                <div class="Center">
+                    <div class="Pad">
+                        <slot></slot>
+                    </div>
+                </div>
+            </div>
+        </script>
+        
+        <!-- slideshow component -->
+        <script>
+            Vue.component("Slideshow", {
+                data: function()
+                {
+                    return{
+                        Children:[],
+                        Active:0
+                    };
+                },
+                methods:{
+                    Change:function(inIndex, inBackward)
+                    {
+                        if(inIndex == this.Active){return;}
 
-                Tone.Setup = function(inFrequency, inPan, inDB)
-                {
-                    Tone.GainBeep = Tone.Context.createGain();
-                    Tone.GainBeep.gain.value = 0;
-                    Tone.GainDB = Tone.Context.createGain();
-                    Tone.Panner = Tone.Context.createStereoPanner();
-                    Tone.Oscillator = Tone.Context.createOscillator();
-                    Tone.Oscillator.start();
-
-                    Tone.Oscillator.connect(Tone.GainDB);
-                    Tone.GainDB.connect(Tone.GainBeep);
-                    Tone.GainBeep.connect(Tone.Panner);
-                    Tone.Panner.connect(Tone.Context.destination);
-
-                    Tone.Oscillator.frequency.value = inFrequency;
-                    Tone.Panner.pan.value = inPan;
-                    Tone.Fade(inDB);
-                };
-                Tone.Fade = function(inDB)
-                {
-                    Tone.GainDB.gain.value = inDB;
-                };
-                return Tone;
-            }])
-            .factory("Test", ["Tone", function(Tone)
-            {
-                return function(inFrequency, inPan, inDB)
-                {
-                    var test = {
-                        Initial: [inFrequency, inPan, inDB]
-                    };
-                    test.Reset = function()
+                        this.Children[this.Active].Deactivate(inBackward);
+                        this.Active = inIndex;
+                        this.Children[this.Active].Activate(inBackward);
+                    },
+                    Previous:function(inBackward)
                     {
-                      test.Frequency = test.Initial[0];  
-                      test.Pan = test.Initial[1];  
-                      test.DB = test.Initial[2];  
-                      test.Active = false;
-                      test.Completed = false;
-                    };
-                    test.HandlerDrag = function(inPos)
+                        var index;
+                        if(this.Active == 0)
+                        {
+                            index = this.Children.length-1;
+                        }
+                        else
+                        {
+                            index = this.Active-1;
+                        }
+                        this.Change(index, inBackward);
+                    },
+                    Next:function(inBackward)
                     {
-                        test.DB = 1 - (Math.ceil(inPos.y*10))/10;
-                        Tone.Fade(test.DB*0.01);
-                    };
-                    test.HandlerStart = function()
-                    {
-                        test.Completed = true;
-                        Tone.Setup(test.Frequency, test.Pan, test.DB);
-                        Tone.Time.Start();
-                        test.Active = true;
-                    };
-                    test.HandlerStop = function()
-                    {
-                        Tone.Time.Stop();
-                        test.Active = false;
-                    };
-                    test.Clean = function()
-                    {
-                        return Math.floor(test.DB*100)/100;  
-                    };
-                    test.Reset();
-                    return test;
-                };
-            }])
-            .factory("TestSet", ["Test", function(Test)
-            {
-                return function()
-                {
-                    var obj = {};
-                    
-                    obj.HighLeft = Test(4000, 1, 0.8);
-                    obj.HighRight = Test(4000, -1, 0.8);
-                    obj.LowLeft = Test(250, 1, 0.8);
-                    obj.LowRight = Test(250, -1, 0.8);
-                    
-                    obj.Tests = [];
-                    obj.Tests.push(obj.HighLeft);
-                    obj.Tests.push(obj.HighRight);
-                    obj.Tests.push(obj.LowLeft);
-                    obj.Tests.push(obj.LowRight);
-                    
-                    obj.Reset = function()
+                        var index;
+                        if(this.Active == this.Children.length-1)
+                        {
+                            index = 0;
+                        }
+                        else
+                        {
+                            index = this.Active+1;
+                        }
+                        this.Change(index, inBackward);
+                    },
+                    FindChildren:function()
                     {
                         var i;
-                        for(i=0; i<obj.Tests.length; i++)
+                        this.Children = [];
+                        for(i=0; i<this.$children.length; i++)
                         {
-                            obj.Tests[i].Reset();
-                        }   
+                            var child = this.$children[i];
+                            if(child.$options._componentTag == "slide")
+                            {
+                                this.Children.push(child);
+                            }
+                        }
+                    }
+                },
+                mounted: function()
+                {
+                    this.FindChildren();
+                    this.Children[this.Active].Activate(false);
+                },
+                template:"#TemplateSlideshow"
+            })
+        </script>
+        <script type="x-template" id="TemplateSlideshow">
+            <div class="Slideshow">
+                <slot v-bind="this">
+                </slot>
+            </div>
+        </script>
+
+        <!-- slider component -->
+        <script>
+            Vue.directive("Drag", {
+                bind:function(inElement)
+                {
+                    Drag.Setup(inElement);
+                }
+            })
+        </script>
+        <script>
+            Vue.component("Slider", {
+                props:{
+                    Steps:{
+                        type:Number,
+                        default:10
+                    },
+                    Min:{
+                        type:Number,
+                        default:0
+                    },
+                    Max:{
+                        type:Number,
+                        default:0.8
+                    },
+                    Hz:{
+                        type:Number,
+                        default:440
+                    },
+                    Pan:{
+                        Type:Number,
+                        default:0
+                    }
+                },
+                data:function()
+                {
+                    return{
+                        Stepped:0,
+                        Percent:0,
+                        Mapped:0,
+                        Adjusted:false,
+                        Adjusting:false
                     };
-                    
-                    obj.PartiallyDone = function()
+                },
+                methods:{
+                    HandlerDrag:function(inEvent)
+                    {
+                      this.Update(1-inEvent.detail.y);
+                    },
+                    HandlerDragStart:function()
+                    {
+                        this.Adjusting = true;
+                        this.Adjusted = true;
+                        Tone.Frequency(this.Hz);
+                        Tone.Beep.Start();
+                    },
+                    HandlerDragStop:function()
+                    {
+                        this.Adjusting = false;
+                        Tone.Beep.Stop();
+                        this.$emit("done", {});
+                    },
+                    Update:function(inValue)
+                    {
+                        this.Stepped = Math.floor(inValue*this.Steps)/this.Steps;
+                        this.Percent = this.Stepped*100;
+                        this.Mapped = Lerp.Set(this.Min, this.Stepped, this.Max);
+                        Tone.Volume(this.Mapped);
+                    },
+                    Reset:function()
+                    {
+                        this.Update(0.8);
+                        this.Adjusted = false;
+                        this.Adjusting = false;
+                    },
+                    Collect:function()
+                    {
+                        return {
+                            Hz:this.Hz,
+                            Pan:this.Pan,
+                            Volume:this.Mapped
+                        };
+                    }
+                },
+                mounted:function(){
+                    this.Reset();
+                },
+                template:"#TemplateSlider"
+            })
+        </script>
+        <script type="x-template" id="TemplateSlider">
+            <div class="Slider"
+                v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
+                v-drag
+                v-on:drag="HandlerDrag"
+                v-on:dragstart="HandlerDragStart"
+                v-on:dragstop="HandlerDragStop">
+                <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
+            </div>
+        </script>
+
+        <!-- Test set -->
+        <script>
+            Vue.component("TestSet", {
+                data:function()
+                {
+                    return{
+                        Done:false,
+                        Started:false,
+                        HighLeft:  {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
+                        HighRight: {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
+                        LowLeft:   {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
+                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1,}
+                    };
+                },
+                methods:{
+                    IsDone:function()
                     {
                         var i;
-                        for(i=0; i<obj.Tests.length; i++)
+                        var levels = [];
+                        var data;
+                        for(i=0; i<this.$children.length; i++)
                         {
-                            if(obj.Tests[i].Completed && !obj.Tests[i].Active)
+                            if(!this.$children[i].$data.Adjusted)
+                            {
+                                return false;
+                            }
+                            levels.push(this.$children[i].Collect());
+                        }
+                        this.$emit("done", levels);
+                        return true;
+                    },
+                    IsStarted:function()
+                    {
+                        var i;
+                        for(i=0; i<this.$children.length; i++)
+                        {
+                            if(this.$children[i].$data.Adjusted)
                             {
                                 return true;
                             }
                         }
                         return false;
-                    }
-                    obj.Done = function()
+                    },
+                    Update:function()
+                    {
+                        this.Done = this.IsDone();
+                        this.Started = this.IsStarted();
+                    },
+                    Reset:function()
                     {
                         var i;
-                        for(i=0; i<obj.Tests.length; i++)
+                        for(i=0; i<this.$children.length; i++)
                         {
-                            if(!obj.Tests[i].Completed || obj.Tests[i].Active)
-                            {
-                                console.log("not done");
-                                return false;
-                            }
+                            this.$children[i].Reset();
                         }
-                        console.log("done");
-                        return true;
-                    };
-                    return obj;
-                };
-            }])
-            .factory("Slideshow", [function()
-            {
-                return function(inMembers)
+                        this.Done = false;
+                        this.Started = false;
+                    }
+                },
+                mounted:function()
                 {
-                    var obj = {};
-                    obj.Index = 0;
-                    obj.Slides = inMembers;
-                    obj.Forward = true;
-                    obj.Initial = true;
-                    obj.Change = function(inIndex)
-                    {
-                        if(inIndex == obj.Index)
-                        {
-                            return;
-                        }
-                        obj.Initial = false;
-                        obj.Slides[obj.Index] = false;
-                        obj.Forward = (inIndex > obj.Index);
-                        obj.Index = inIndex;
-                        obj.Slides[obj.Index] = true;
-                    };
-                    return obj;
-                }
-            }])
-            .controller("Controller", ["$scope", "TestSet", "Slideshow", function($scope, TestSet, Slideshow)
-            {
-                $scope.Slides = Slideshow([true, false, false, false]);
-                
-                $scope.Name = "";
-                $scope.Email = "";
-                
-                $scope.TestNormal = TestSet();
-                $scope.TestProtected = TestSet();
-            }]);
+                },
+                template:"#TemplateTestSet"
+            })
         </script>
+        <script type="x-template" id="TemplateTestSet">
+            <div class="Test">
+                <slot v-bind="this">
+                    <button v-on:click="$root.Previous">Back Default</button>
+                    <button v-on:click="Reset" v-show="Started">Reset Default</button>
+                    <button v-on:click="$root.Next" v-show="Done">Next Default</button>
+                </slot>
+                <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
+                <Slider v-bind="HighRight" v-on:done="Update"></Slider>
+                <Slider v-bind="LowLeft"   v-on:done="Update"></Slider>
+                <Slider v-bind="LowRight"  v-on:done="Update"></Slider>
+            </div>
+        </script>
+
+        <!-- vue app -->
+        <script>
+            var App = new Vue({
+                el:"#App",
+                data:{
+                    Normal:"",
+                    Protected:"",
+                },
+                computed:{
+                    URL:function()
+                    {
+                        return "//site/profile?normal="+this.Normal+"&protected="+this.Protected;
+                    }
+                },
+                methods:{
+                    RecordNormal:function(inData)
+                    {
+                        console.log("record normal called", inData);
+                        this.Normal = btoa(JSON.stringify(inData));
+                    },
+                    RecordProtected:function(inData)
+                    {
+                        console.log("record protected called", inData);
+                        this.Protected = btoa(JSON.stringify(inData));
+                    },
+                }
+            });
+        </script>
+        
     </body>
 </html>
