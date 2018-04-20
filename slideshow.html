@@ -77,7 +77,6 @@ Tone.Volume = function(inValue)
 Tone.Frequency = function(inValue)
 {
     Tone.Change(Tone.Oscillator.frequency, inValue);
-    console.log("tone frequency set to", inValue);
 };
 Tone.Init();
         </script>
@@ -186,32 +185,43 @@ Drag.Setup = function(inElement)
         <div id="App">
             <Slideshow>
                 <template slot-scope="Slideshow">
+                    
+                    <Slide>
+                        <h2>REAT Measurement Test</h2>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.SlidesNext">Start</button>
+                        </div>
+                    </Slide>
+                    
                     <Slide>
                         <h2>Part One</h2>
                         <p>Please remove ear protection and make sure headphones fit correctly</p>
-                        <Test-Set>
-                            <div slot-scope="TestSet">
+                        <Test-Set v-on:done="RecordNormal">
+                            <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.SlidesPrevious">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
                                 <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
                     </Slide> 
+                    
                     <Slide>
                         <h2>Part Two</h2>
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
-                        <Test-Set>
-                            <div slot-scope="TestSet">
+                        <Test-Set v-on:done="RecordProtected">
+                            <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.SlidesPrevious">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
                                 <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
                     </Slide> 
+                    
                     <Slide>
                         <h2>Part Three</h2>
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
                     </Slide>
+                    
                 </template>
             </Slideshow>
         </div>
@@ -219,25 +229,11 @@ Drag.Setup = function(inElement)
         <!-- slide component -->
         <script>
             Vue.component("Slide", {
-                props:["active", "backward"],
                 data:function()
                 {
                     return {
                         CSS:""
                    };
-                },
-                watch:{
-                   active:function(inNew, inOld)
-                   {
-                       if(inNew)
-                       {
-                           this.Activate(this.backward);
-                       }
-                       else
-                       {
-                           this.Deactivate(this.backward);
-                       }
-                   }
                 },
                 methods:{
                     Direction:function(inBackward)
@@ -452,6 +448,12 @@ Drag.Setup = function(inElement)
                         LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
                     };
                 },
+                watch: {
+                    Done:function(inNew, inOld)
+                    {
+                        this.$emit("done", {})
+                    }
+                },
                 methods:{
                     IsDone:function()
                     {
@@ -479,7 +481,6 @@ Drag.Setup = function(inElement)
                     },
                     Update:function()
                     {
-                        console.log("Test update")
                         this.Done = this.IsDone();
                         this.Started = this.IsStarted();
                     },
@@ -521,6 +522,16 @@ Drag.Setup = function(inElement)
                 data:{
                     TestResultsNormal:    {Started:false, Done:false, Output:[]},
                     TestResultsProtected: {Started:false, Done:false, Output:[]},
+                },
+                methods:{
+                    RecordNormal:function()
+                    {
+                        console.log("record normal called");
+                    },
+                    RecordProtected:function()
+                    {
+                        console.log("record protected called");
+                    },
                 }
             });
         </script>
