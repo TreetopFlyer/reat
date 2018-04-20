@@ -189,7 +189,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>REAT Measurement Test</h2>
                         <div class="Controls">
-                            <button v-on:click="Slideshow.SlidesNext">Start</button>
+                            <button v-on:click="Slideshow.Next">Start</button>
                         </div>
                     </Slide>
                     
@@ -198,9 +198,9 @@ Drag.Setup = function(inElement)
                         <p>Please remove ear protection and make sure headphones fit correctly</p>
                         <Test-Set v-on:done="RecordNormal">
                             <div class="Controls" slot-scope="TestSet">
-                                <button v-on:click="Slideshow.SlidesPrevious">Back</button>
+                                <button v-on:click="Slideshow.Previous">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
-                                <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
+                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
                     </Slide> 
@@ -210,16 +210,17 @@ Drag.Setup = function(inElement)
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
                         <Test-Set v-on:done="RecordProtected">
                             <div class="Controls" slot-scope="TestSet">
-                                <button v-on:click="Slideshow.SlidesPrevious">Back</button>
+                                <button v-on:click="Slideshow.Previous">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
-                                <button v-on:click="Slideshow.SlidesNext" v-show="TestSet.Done">Next</button>
+                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
                             </div>
                         </Test-Set>
                     </Slide> 
                     
                     <Slide>
                         <h2>Part Three</h2>
-                        <p>Please insert ear protection and make sure headphones fit correctly</p>
+                        <p>ty all</p>
+                        <a v-bind:href="URL">View Results</a>
                     </Slide>
                     
                 </template>
@@ -283,7 +284,7 @@ Drag.Setup = function(inElement)
                     };
                 },
                 methods:{
-                    SlidesChange:function(inIndex, inBackward)
+                    Change:function(inIndex, inBackward)
                     {
                         if(inIndex == this.Active){return;}
 
@@ -291,7 +292,7 @@ Drag.Setup = function(inElement)
                         this.Active = inIndex;
                         this.Children[this.Active].Activate(inBackward);
                     },
-                    SlidesPrevious:function(inBackward)
+                    Previous:function(inBackward)
                     {
                         var index;
                         if(this.Active == 0)
@@ -302,9 +303,9 @@ Drag.Setup = function(inElement)
                         {
                             index = this.Active-1;
                         }
-                        this.SlidesChange(index, inBackward);
+                        this.Change(index, inBackward);
                     },
-                    SlidesNext:function(inBackward)
+                    Next:function(inBackward)
                     {
                         var index;
                         if(this.Active == this.Children.length-1)
@@ -315,7 +316,7 @@ Drag.Setup = function(inElement)
                         {
                             index = this.Active+1;
                         }
-                        this.SlidesChange(index, inBackward);
+                        this.Change(index, inBackward);
                     },
                     FindChildren:function()
                     {
@@ -373,6 +374,10 @@ Drag.Setup = function(inElement)
                     Hz:{
                         type:Number,
                         default:440
+                    },
+                    Pan:{
+                        Type:Number,
+                        default:0
                     }
                 },
                 data:function()
@@ -415,6 +420,14 @@ Drag.Setup = function(inElement)
                         this.Update(0.8);
                         this.Adjusted = false;
                         this.Adjusting = false;
+                    },
+                    Collect:function()
+                    {
+                        return {
+                            Hz:this.Hz,
+                            Pan:this.Pan,
+                            Volume:this.Mapped
+                        };
                     }
                 },
                 mounted:function(){
@@ -445,26 +458,24 @@ Drag.Setup = function(inElement)
                         HighLeft:  {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
                         HighRight: {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
                         LowLeft:   {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
-                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
+                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1,}
                     };
-                },
-                watch: {
-                    Done:function(inNew, inOld)
-                    {
-                        this.$emit("done", {})
-                    }
                 },
                 methods:{
                     IsDone:function()
                     {
                         var i;
+                        var levels = [];
+                        var data;
                         for(i=0; i<this.$children.length; i++)
                         {
                             if(!this.$children[i].$data.Adjusted)
                             {
                                 return false;
                             }
+                            levels.push(this.$children[i].Collect());
                         }
+                        this.$emit("done", levels);
                         return true;
                     },
                     IsStarted:function()
@@ -504,9 +515,9 @@ Drag.Setup = function(inElement)
         <script type="x-template" id="TemplateTestSet">
             <div class="Test">
                 <slot v-bind="this">
-                    <button v-on:click="$root.SlidesPrevious">Back Default</button>
+                    <button v-on:click="$root.Previous">Back Default</button>
                     <button v-on:click="Reset" v-show="Started">Reset Default</button>
-                    <button v-on:click="$root.SlidesNext" v-show="Done">Next Default</button>
+                    <button v-on:click="$root.Next" v-show="Done">Next Default</button>
                 </slot>
                 <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
                 <Slider v-bind="HighRight" v-on:done="Update"></Slider>
@@ -520,17 +531,25 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    TestResultsNormal:    {Started:false, Done:false, Output:[]},
-                    TestResultsProtected: {Started:false, Done:false, Output:[]},
+                    Normal:"",
+                    Protected:"",
+                },
+                computed:{
+                    URL:function()
+                    {
+                        return "//site/profile?normal="+this.Normal+"&protected="+this.Protected;
+                    }
                 },
                 methods:{
-                    RecordNormal:function()
+                    RecordNormal:function(inData)
                     {
-                        console.log("record normal called");
+                        console.log("record normal called", inData);
+                        this.Normal = btoa(JSON.stringify(inData));
                     },
-                    RecordProtected:function()
+                    RecordProtected:function(inData)
                     {
-                        console.log("record protected called");
+                        console.log("record protected called", inData);
+                        this.Protected = btoa(JSON.stringify(inData));
                     },
                 }
             });
