@@ -15,6 +15,7 @@ Tone.Beep = {
     Pattern:[0, 1, 0, 1, 0, 1, 0, 0],
     Quit:true,
     Done:true,
+    Initialized:false,
     Update: function()
     {
         if(Tone.Beep.Counter >= Tone.Beep.Pattern.length)
@@ -35,7 +36,6 @@ Tone.Beep = {
         if(!Tone.Beep.Quit)
             return;
             
-
         Tone.Beep.Done = false;
         Tone.Beep.Quit = false;
         Tone.Beep.Counter = 0;
@@ -50,6 +50,11 @@ Tone.Beep = {
 };
 Tone.Init = function()
 {
+    if(Tone.Initialized)
+    {
+        return;
+    }
+    
     Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
     Tone.GainBeep = Tone.Context.createGain();
     Tone.GainDB = Tone.Context.createGain();
@@ -63,6 +68,8 @@ Tone.Init = function()
     Tone.GainBeep.connect(Tone.Panner);
     Tone.GainBeep.gain.setValueAtTime(0, Tone.Context.currentTime);
     Tone.Panner.connect(Tone.Context.destination);
+    
+    Tone.Initialized = true;
 };
 Tone.Change = function(inAdjustable, inValue)
 {
@@ -80,7 +87,6 @@ Tone.Frequency = function(inValue)
 {
     Tone.Change(Tone.Oscillator.frequency, inValue);
 };
-Tone.Init();
         </script>
         
         <!-- CustomEvent polyfill -->
@@ -222,7 +228,8 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part Three</h2>
                         <p>ty all</p>
-                        <a v-bind:href="URL">View Results</a>
+                        <button v-bind:href="URL">View Results</button>
+                        <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
                     </Slide>
                     
                 </template>
@@ -401,7 +408,10 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = true;
                         this.Adjusted = true;
+                        Tone.Init();
                         Tone.Frequency(this.Hz);
+                        Tone.Volume(this.Mapped);
+                        Tone.Pan(this.Pan);
                         Tone.Beep.Start();
                     },
                     HandlerDragStop:function()
@@ -410,26 +420,26 @@ Drag.Setup = function(inElement)
                         Tone.Beep.Stop();
                         this.$emit("done", {});
                     },
-                    Update:function(inValue)
+                    Recalculate:function(inValue)
                     {
                         this.Stepped = Math.floor(inValue*this.Steps)/this.Steps;
                         this.Percent = this.Stepped*100;
                         this.Mapped = Lerp.Set(this.Min, this.Stepped, this.Max);
+                    },
+                    Update:function(inValue)
+                    {
+                        this.Recalculate(inValue);
                         Tone.Volume(this.Mapped);
                     },
                     Reset:function()
                     {
-                        this.Update(0.8);
+                        this.Recalculate(0.8);
                         this.Adjusted = false;
                         this.Adjusting = false;
                     },
                     Collect:function()
                     {
-                        return {
-                            Hz:this.Hz,
-                            Pan:this.Pan,
-                            Volume:this.Mapped
-                        };
+                        return {Hz:this.Hz, Pan:this.Pan, Volume:this.Mapped};
                     }
                 },
                 mounted:function(){
@@ -460,7 +470,7 @@ Drag.Setup = function(inElement)
                         HighLeft:  {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
                         HighRight: {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
                         LowLeft:   {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
-                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1,}
+                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
                     };
                 },
                 methods:{
