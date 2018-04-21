@@ -87,6 +87,7 @@ Tone.Frequency = function(inValue)
 {
     Tone.Change(Tone.Oscillator.frequency, inValue);
 };
+Tone.Init();
         </script>
         
         <!-- CustomEvent polyfill -->
@@ -197,7 +198,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>REAT Measurement Test</h2>
                         <div class="Controls">
-                            <button v-on:click="Slideshow.Next">Start</button>
+                            <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
                         </div>
                     </Slide>
                     
@@ -301,7 +302,7 @@ Drag.Setup = function(inElement)
                         this.Active = inIndex;
                         this.Children[this.Active].Activate(inBackward);
                     },
-                    Previous:function(inBackward)
+                    Previous:function()
                     {
                         var index;
                         if(this.Active == 0)
@@ -312,9 +313,9 @@ Drag.Setup = function(inElement)
                         {
                             index = this.Active-1;
                         }
-                        this.Change(index, inBackward);
+                        this.Change(index, true);
                     },
-                    Next:function(inBackward)
+                    Next:function()
                     {
                         var index;
                         if(this.Active == this.Children.length-1)
@@ -325,7 +326,7 @@ Drag.Setup = function(inElement)
                         {
                             index = this.Active+1;
                         }
-                        this.Change(index, inBackward);
+                        this.Change(index, false);
                     },
                     FindChildren:function()
                     {
@@ -408,7 +409,7 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = true;
                         this.Adjusted = true;
-                        Tone.Init();
+
                         Tone.Frequency(this.Hz);
                         Tone.Volume(this.Mapped);
                         Tone.Pan(this.Pan);
@@ -418,7 +419,7 @@ Drag.Setup = function(inElement)
                     {
                         this.Adjusting = false;
                         Tone.Beep.Stop();
-                        this.$emit("done", {});
+                        this.$emit("done", this.Mapped);
                     },
                     Recalculate:function(inValue)
                     {
@@ -543,26 +544,43 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    Normal:"",
-                    Protected:"",
+                    Fields:[],
+                    Normal:[],
+                    Protected:[],
                 },
                 computed:{
                     URL:function()
                     {
-                        return "//site/profile?normal="+this.Normal+"&protected="+this.Protected;
+                        var recording = {
+                            Fields:this.Fields,
+                            Results:[this.Normal, this.Protected]
+                        };
+                        return "https://seth1111.wixsite.com/mysite/profile?results="+btoa(JSON.stringify(recording));
                     }
                 },
                 methods:{
+                    Extract:function(inData)
+                    {
+                        this.Fields = [];
+                        var output = [];
+                        var i, j;
+                        for(i=0; i<inData.length; i++)
+                        {
+                            this.Fields[i] = {Hz:inData[i].Hz, Pan:inData[i].Pan};
+                            output.push(inData[i].Volume);
+                        }
+                        return output;
+                    },
                     RecordNormal:function(inData)
                     {
                         console.log("record normal called", inData);
-                        this.Normal = btoa(JSON.stringify(inData));
+                        this.Normal = this.Extract(inData);
                     },
                     RecordProtected:function(inData)
                     {
                         console.log("record protected called", inData);
-                        this.Protected = btoa(JSON.stringify(inData));
-                    },
+                        this.Protected = this.Extract(inData);
+                    }
                 }
             });
         </script>
