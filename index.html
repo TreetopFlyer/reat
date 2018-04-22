@@ -206,7 +206,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part One</h2>
                         <p>Please remove ear protection and make sure headphones fit correctly</p>
-                        <Test-Set v-on:done="RecordNormal">
+                        <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordNormal">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
@@ -218,7 +218,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part Two</h2>
                         <p>Please insert ear protection and make sure headphones fit correctly</p>
-                        <Test-Set v-on:done="RecordProtected">
+                        <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordProtected">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
                                 <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
@@ -464,22 +464,19 @@ Drag.Setup = function(inElement)
         <!-- Test set -->
         <script>
             Vue.component("TestSet", {
+                props:["Test"],
                 data:function()
                 {
                     return{
                         Done:false,
                         Started:false,
-                        HighLeft:  {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
-                        HighRight: {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
-                        LowLeft:   {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
-                        LowRight:  {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
+                        Results:[]
                     };
                 },
                 methods:{
                     IsDone:function()
                     {
                         var i;
-                        var levels = [];
                         var data;
                         for(i=0; i<this.$children.length; i++)
                         {
@@ -487,9 +484,8 @@ Drag.Setup = function(inElement)
                             {
                                 return false;
                             }
-                            levels.push(this.$children[i].Collect());
                         }
-                        this.$emit("done", levels);
+                        this.$emit("done", this.Results);
                         return true;
                     },
                     IsStarted:function()
@@ -504,8 +500,10 @@ Drag.Setup = function(inElement)
                         }
                         return false;
                     },
-                    Update:function()
+                    Update:function(inKey, inValue)
                     {
+                        this.Results[inKey] = inValue
+                        console.log(inKey, inValue);
                         this.Done = this.IsDone();
                         this.Started = this.IsStarted();
                     },
@@ -533,10 +531,9 @@ Drag.Setup = function(inElement)
                     <button v-on:click="Reset" v-show="Started">Reset Default</button>
                     <button v-on:click="$root.Next" v-show="Done">Next Default</button>
                 </slot>
-                <Slider v-bind="HighLeft"  v-on:done="Update"></Slider>
-                <Slider v-bind="HighRight" v-on:done="Update"></Slider>
-                <Slider v-bind="LowLeft"   v-on:done="Update"></Slider>
-                <Slider v-bind="LowRight"  v-on:done="Update"></Slider>
+                <div style="overflow:hidden;">
+                    <Slider v-for="(value, key) in Test" v-bind="value" v-on:done="Update(key, $event)"></Slider>
+                </div>
             </div>
         </script>
 
@@ -545,9 +542,12 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    Fields:[],
-                    Normal:[],
-                    Protected:[],
+                    TestFrequencies:[
+                        {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
+                        {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
+                        {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
+                        {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
+                    ]
                 },
                 computed:{
                     URL:function()
