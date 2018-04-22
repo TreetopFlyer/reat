@@ -191,6 +191,7 @@ Drag.Setup = function(inElement)
     </head>
     <body>
         
+        
         <div id="App">
             <Slideshow>
                 <template slot-scope="Slideshow">
@@ -229,7 +230,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part Three</h2>
                         <p>ty all</p>
-                        <button v-bind:href="URL">View Results</button>
+                        <a v-bind:href="URL">View Results</a>
                         <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
                     </Slide>
                     
