@@ -1,0 +1,17 @@
+---
+---
+<!DOCTYPE html>
+<html>
+    <head>
+        
+    </head>
+    <body onload="window.parent.postMessage('from iframe', '*');">
+        <script>
+window.onmessage = function(event)
+{
+    console.warn(event);
+};
+
+        </script>
+    </body>
+</html>

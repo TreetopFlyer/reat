@@ -199,6 +199,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>REAT Measurement Test</h2>
                         <div class="Controls">
+                            <button onclick="Message.Send('button click in child page');">send test</button>
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
                         </div>
                     </Slide>
@@ -230,7 +231,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part Three</h2>
                         <p>ty all</p>
-                        <a v-bind:href="URL">View Results</a>
+                        <button v-on:click="Finish">Start Over</button>
                         <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
                     </Slide>
                     
@@ -503,7 +504,6 @@ Drag.Setup = function(inElement)
                     Update:function(inKey, inValue)
                     {
                         this.Results[inKey] = inValue
-                        console.log(inKey, inValue);
                         this.Done = this.IsDone();
                         this.Started = this.IsStarted();
                     },
@@ -542,49 +542,48 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    TestFrequencies:[
+                    TestFrequencies:[]
+                    /*
+                    [
                         {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
                         {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
                         {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
                         {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
                     ]
-                },
-                computed:{
-                    URL:function()
-                    {
-                        var recording = {
-                            Fields:this.Fields,
-                            Results:[this.Normal, this.Protected]
-                        };
-                        return "https://seth1111.wixsite.com/mysite/profile?results="+btoa(JSON.stringify(recording));
-                    }
+                    */
                 },
                 methods:{
-                    Extract:function(inData)
-                    {
-                        this.Fields = [];
-                        var output = [];
-                        var i, j;
-                        for(i=0; i<inData.length; i++)
-                        {
-                            this.Fields[i] = {Hz:inData[i].Hz, Pan:inData[i].Pan};
-                            output.push(inData[i].Volume);
-                        }
-                        return output;
-                    },
                     RecordNormal:function(inData)
                     {
                         console.log("record normal called", inData);
-                        this.Normal = this.Extract(inData);
+                        window.parent.postMessage({Event:"RecordNormal", Data:inData}, "*");
                     },
                     RecordProtected:function(inData)
                     {
                         console.log("record protected called", inData);
-                        this.Protected = this.Extract(inData);
+                        window.parent.postMessage({Event:"RecordProtected", Data:inData}, "*");
+                    },
+                    Finish:function()
+                    {
+                        window.parent.postMessage({Event:"Done"}, "*");
                     }
                 }
             });
+            
+            window.onmessage = function(inMessage)
+            {
+                console.log("Child Message:", inMessage);
+                switch(inMessage.data.Event)
+                {
+                    case "Setup":
+                        App.TestFrequencies = inMessage.data.Data; 
+                        break;
+                }
+            };
+            document.body.onload = function()
+            {
+                window.parent.postMessage({Event:"Loaded"}, "*");  
+            };
         </script>
-        
     </body>
 </html>
