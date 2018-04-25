@@ -230,8 +230,7 @@ Drag.Setup = function(inElement)
                     
                     <Slide>
                         <h2>Part Three</h2>
-                        <p>ty all</p>
-                        <button v-on:click="Finish">Start Over</button>
+                        <button v-on:click="Finish">Finish</button>
                         <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
                     </Slide>
                     
@@ -542,15 +541,12 @@ Drag.Setup = function(inElement)
             var App = new Vue({
                 el:"#App",
                 data:{
-                    TestFrequencies:[]
-                    /*
-                    [
+                    TestFrequencies:[
                         {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
                         {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
                         {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
                         {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
                     ]
-                    */
                 },
                 methods:{
                     RecordNormal:function(inData)
