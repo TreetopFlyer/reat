@@ -30,6 +30,7 @@ Tone.Beep = {
         }
         Tone.Change(Tone.GainBeep.gain, Tone.Beep.Pattern[Tone.Beep.Counter]);
         Tone.Beep.Counter++;
+        console.log("beep");
     },
     Start: function()
     {
@@ -191,13 +192,28 @@ Drag.Setup = function(inElement)
     </head>
     <body>
         
+        <script>
+        function pleaseBeep()
+        {
+            Tone.Frequency(440);
+            Tone.Volume(1);
+            Tone.Pan(0);
+            Tone.Beep.Start(); 
+        }
+
+        </script>
         
         <div id="App">
+            <button style="width:200px; height:200px;" onclick="Tone.Context.resume()">R E S U M E</button>
+            <button style="width:200px; height:200px;" onclick="alert(Tone.Context.state)">t r a c e </button>
+            <button style="width:200px; height:200px;" onclick="pleaseBeep()">beeeeep </button>
+            
             <Slideshow>
                 <template slot-scope="Slideshow">
                     
                     <Slide>
                         <h2>REAT Measurement Test</h2>
+                        <p>this is new</p>
                         <div class="Controls">
                             <button onclick="Message.Send('button click in child page');">send test</button>
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>

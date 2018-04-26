@@ -1,0 +1,114 @@
+---
+---
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+
+<!--
+        <script>
+var Context, Oscillator;
+
+Context = new webkitAudioContext();
+Oscillator = Context.createOscillator();
+Oscillator.start();
+Oscillator.connect(Context.destination);
+        </script>
+
+        -->
+        
+        <!-- Tone -->
+        <script>
+var Tone = {};
+Tone.Beep = {
+    Timer:0,
+    Counter:0,
+    Pattern:[0, 1, 0, 1, 0, 1, 0, 0],
+    Quit:true,
+    Done:true,
+    Initialized:false,
+    Update: function()
+    {
+        if(Tone.Beep.Counter >= Tone.Beep.Pattern.length)
+        {
+            if(Tone.Beep.Quit)
+            {
+                clearInterval(Tone.Beep.Timer);
+                Tone.Change(Tone.GainBeep.gain, 0);
+                Tone.Beep.Done = true;
+            }
+            Tone.Beep.Counter = 0;
+        }
+        Tone.Change(Tone.GainBeep.gain, Tone.Beep.Pattern[Tone.Beep.Counter]);
+        Tone.Beep.Counter++;
+        console.log("beep");
+    },
+    Start: function()
+    {
+        if(!Tone.Beep.Quit)
+            return;
+            
+        Tone.Beep.Done = false;
+        Tone.Beep.Quit = false;
+        Tone.Beep.Counter = 0;
+        clearInterval(Tone.Beep.Timer);
+        Tone.Beep.Timer = setInterval(Tone.Beep.Update, 120);
+        Tone.Beep.Update();
+    },
+    Stop: function()
+    {
+        Tone.Beep.Quit = true;
+    }
+};
+Tone.Init = function()
+{
+
+    
+    Tone.Context = new webkitAudioContext();
+    
+    Tone.Oscillator = Tone.Context.createOscillator();
+    Tone.Oscillator.start();
+
+    Tone.Oscillator.connect(Tone.Context.destination);
+    //Tone.Panner.connect(Tone.Context.destination);
+
+};
+Tone.Change = function(inAdjustable, inValue)
+{
+    inAdjustable.linearRampToValueAtTime(inValue, Tone.Context.currentTime+0.008);
+}
+Tone.Pan = function(inValue)
+{
+    Tone.Change(Tone.Panner.pan, inValue);
+};
+Tone.Volume = function(inValue)
+{
+    Tone.Change(Tone.GainDB.gain, inValue);
+};
+Tone.Frequency = function(inValue)
+{
+    Tone.Change(Tone.Oscillator.frequency, inValue);
+};
+Tone.Init();
+        </script>
+ 
+         <script>
+        function pleaseBeep()
+        {
+            Tone.Frequency(440);
+            Tone.Volume(1);
+            Tone.Pan(0);
+            Tone.Beep.Start(); 
+        }
+
+        </script>
+ 
+ <button onclick="Tone.Context.resume()">Resume</button>
+ <button onclick="alert(Tone.Context.state);">Trace</button>
+ 
+ 
+ <button style="width:200px; height:200px;" onclick="pleaseBeep()">beeeeep </button>
+            
+    </body>
+</html>
