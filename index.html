@@ -8,89 +8,102 @@
         
         <!-- Tone -->
         <script>
-var Tone = {};
-Tone.Beep = {
-    Timer:0,
-    Counter:0,
-    Pattern:[0, 1, 0, 1, 0, 1, 0, 0],
-    Quit:true,
-    Done:true,
-    Initialized:false,
-    Update: function()
-    {
-        if(Tone.Beep.Counter >= Tone.Beep.Pattern.length)
-        {
-            if(Tone.Beep.Quit)
-            {
-                clearInterval(Tone.Beep.Timer);
-                Tone.Change(Tone.GainBeep.gain, 0);
-                Tone.Beep.Done = true;
-            }
-            Tone.Beep.Counter = 0;
-        }
-        Tone.Change(Tone.GainBeep.gain, Tone.Beep.Pattern[Tone.Beep.Counter]);
-        Tone.Beep.Counter++;
-        console.log("beep");
-    },
-    Start: function()
-    {
-        if(!Tone.Beep.Quit)
-            return;
-            
-        Tone.Beep.Done = false;
-        Tone.Beep.Quit = false;
-        Tone.Beep.Counter = 0;
-        clearInterval(Tone.Beep.Timer);
-        Tone.Beep.Timer = setInterval(Tone.Beep.Update, 120);
-        Tone.Beep.Update();
-    },
-    Stop: function()
-    {
-        Tone.Beep.Quit = true;
-    }
+var Tone;
+Tone = {
+         Context:false,
+      Oscillator:false,
+        GainBeep:false,
+        GainFade:false,
+        GainLeft:false,
+       GainRight:false,
+    ChannelMerge:false,
+    
+        Pattern:[0, 1, 0.1, 0, 1, 0.1, 0, 1, 0.1, 0, 0, 0],
+       Duration:1,
+    KeepBeeping:false,
+          Timer:-1
 };
 Tone.Init = function()
 {
-    if(Tone.Initialized)
-    {
-        return;
-    }
-    
-    Tone.Context = new (window.AudioContext || window.webkitAudioContext)();
-    Tone.GainBeep = Tone.Context.createGain();
-    Tone.GainDB = Tone.Context.createGain();
-    Tone.Panner = Tone.Context.createStereoPanner();
-    Tone.Oscillator = Tone.Context.createOscillator();
-    Tone.Oscillator.start();
+    // setup audio context
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    Tone.Context = new AudioContext();
 
-    Tone.Oscillator.connect(Tone.GainDB);
-    Tone.GainDB.connect(Tone.GainBeep);
-    Tone.GainDB.gain.setValueAtTime(0, Tone.Context.currentTime);
-    Tone.GainBeep.connect(Tone.Panner);
+    // create audio nodes
+      Tone.Oscillator = Tone.Context.createOscillator();
+        Tone.GainBeep = Tone.Context.createGain();
+        Tone.GainFade = Tone.Context.createGain();
+        Tone.GainLeft = Tone.Context.createGain();
+       Tone.GainRight = Tone.Context.createGain();
+    Tone.ChannelMerge = Tone.Context.createChannelMerger(2);
+
+    // wire up audio nodes
+    Tone.Oscillator.connect(Tone.GainBeep);
+      Tone.GainBeep.connect(Tone.GainFade);
+      Tone.GainFade.connect(Tone.GainLeft);
+      Tone.GainFade.connect(Tone.GainRight);
+      Tone.GainLeft.connect(Tone.ChannelMerge, 0, 0);
+     Tone.GainRight.connect(Tone.ChannelMerge, 0, 1);
+  Tone.ChannelMerge.connect(Tone.Context.destination);
+
+    // start
+     Tone.GainBeep.gain.value = 0;
+     Tone.GainLeft.gain.value = 0.5;
+    Tone.GainRight.gain.value = 0.5;
+    Tone.Oscillator.start(Tone.Context.currentTime+0.0);
+};
+Tone.Start = function()
+{
+    var i;
+    var value, time;
+
+    Tone.KeepBeeping = true;
+    Tone.Context.resume();
+    Tone.GainBeep.gain.cancelScheduledValues(Tone.Context.currentTime);
     Tone.GainBeep.gain.setValueAtTime(0, Tone.Context.currentTime);
-    Tone.Panner.connect(Tone.Context.destination);
-    
-    Tone.Initialized = true;
+
+    for(i=0; i<Tone.Pattern.length; i++)
+    {
+        value = Tone.Pattern[i];
+        time =  (i*Tone.Duration/(Tone.Pattern.length-1));
+        Tone.GainBeep.gain.linearRampToValueAtTime(value, Tone.Context.currentTime+time);
+    }
+    Tone.Timer = setTimeout(function()
+    {
+        if(Tone.KeepBeeping)
+        {
+            Tone.Start();
+        }
+    }, Tone.Duration*1000);
 };
-Tone.Change = function(inAdjustable, inValue)
+Tone.Stop = function()
 {
-    inAdjustable.linearRampToValueAtTime(inValue, Tone.Context.currentTime+0.008);
+    Tone.KeepBeeping = false;
 }
-Tone.Pan = function(inValue)
+Tone.SetFrequency = function(inHz)
 {
-    Tone.Change(Tone.Panner.pan, inValue);
+    Tone.Oscillator.frequency.linearRampToValueAtTime(inHz, Tone.Context.currentTime+0.1);
 };
-Tone.Volume = function(inValue)
+Tone.SetStereo = function(inBias)
 {
-    Tone.Change(Tone.GainDB.gain, inValue);
+    var biasVector = [0.5, 0.5];
+    if(inBias == -1)
+    {
+        biasVector[1] = 0;
+    }
+    if(inBias == 1)
+    {
+        biasVector[0] = 0;
+    }
+     Tone.GainLeft.gain.linearRampToValueAtTime(biasVector[0], Tone.Context.currentTime+0.1);
+    Tone.GainRight.gain.linearRampToValueAtTime(biasVector[1], Tone.Context.currentTime+0.1);
 };
-Tone.Frequency = function(inValue)
+Tone.SetVolume = function(inAmount)
 {
-    Tone.Change(Tone.Oscillator.frequency, inValue);
-};
+    Tone.GainFade.gain.linearRampToValueAtTime(inAmount, Tone.Context.currentTime);
+}
 Tone.Init();
         </script>
-        
         <!-- CustomEvent polyfill -->
         <script>
 (function ()
@@ -192,16 +205,7 @@ Drag.Setup = function(inElement)
     </head>
     <body>
         
-        <script>
-        function pleaseBeep()
-        {
-            Tone.Frequency(440);
-            Tone.Volume(1);
-            Tone.Pan(0);
-            Tone.Beep.Start(); 
-        }
 
-        </script>
         
         <div id="App">
             <button style="width:200px; height:200px;" onclick="Tone.Context.resume()">R E S U M E</button>
@@ -427,15 +431,15 @@ Drag.Setup = function(inElement)
                         this.Adjusting = true;
                         this.Adjusted = true;
 
-                        Tone.Frequency(this.Hz);
-                        Tone.Volume(this.Mapped);
-                        Tone.Pan(this.Pan);
-                        Tone.Beep.Start();
+                        Tone.SetFrequency(this.Hz);
+                        Tone.SetVolume(this.Mapped);
+                        Tone.SetStereo(this.Pan);
+                        Tone.Start();
                     },
                     HandlerDragStop:function()
                     {
                         this.Adjusting = false;
-                        Tone.Beep.Stop();
+                        Tone.Stop();
                         this.$emit("done", this.Mapped);
                     },
                     Recalculate:function(inValue)
@@ -447,7 +451,7 @@ Drag.Setup = function(inElement)
                     Update:function(inValue)
                     {
                         this.Recalculate(inValue);
-                        Tone.Volume(this.Mapped);
+                        Tone.SetVolume(this.Mapped);
                     },
                     Reset:function()
                     {
