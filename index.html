@@ -417,7 +417,11 @@ Drag.Setup = function(inElement)
                         Percent:0,
                         Mapped:0,
                         Adjusted:false,
-                        Adjusting:false
+                        Adjusting:false,
+                        SlidMin:this.Min,
+                        SlidMax:this.Max,
+                        Low:false,
+                        High:false
                     };
                 },
                 methods:{
@@ -431,7 +435,7 @@ Drag.Setup = function(inElement)
                         this.Adjusted = true;
 
                         Tone.SetFrequency(this.Hz);
-                        Tone.SetVolume(this.Mapped);
+                        Tone.SetVolume(Lerp.Clip(0, this.Mapped, 1));
                         Tone.SetStereo(this.Pan);
                         Tone.Start();
                     },
@@ -440,17 +444,33 @@ Drag.Setup = function(inElement)
                         this.Adjusting = false;
                         Tone.Stop();
                         this.$emit("done", this.Mapped);
+                        console.log("Check:", this.Mapped);
                     },
                     Recalculate:function(inValue)
                     {
                         this.Stepped = Math.floor(inValue*this.Steps)/this.Steps;
                         this.Percent = this.Stepped*100;
-                        this.Mapped = Lerp.Set(this.Min, this.Stepped, this.Max);
+                        this.Mapped = Lerp.Set(this.SlidMin, this.Stepped, this.SlidMax);
+                        
+                        this.Low = (this.Percent < 20);
+                        this.High = (this.Percent > 80);
                     },
                     Update:function(inValue)
                     {
                         this.Recalculate(inValue);
                         Tone.SetVolume(this.Mapped);
+                    },
+                    Jump:function(inScalar)
+                    {
+                        console.log("Before:", this.SlidMin, this.Stepped, this.SlidMax);
+                        var range = this.SlidMax - this.SlidMin;
+                        var slide = range*0.8*inScalar;
+                        this.SlidMax += slide;
+                        this.SlidMin += slide;
+                        var rel = (0.5 + 0.25*inScalar);
+                        console.log("Slider percent", rel);
+                        this.Update(Lerp.Set(this.SlidMin, rel, this.SlidMax));
+                        console.log("After:", this.SlidMin, this.Stepped, this.SlidMax);
                     },
                     Reset:function()
                     {
@@ -470,13 +490,18 @@ Drag.Setup = function(inElement)
             })
         </script>
         <script type="x-template" id="TemplateSlider">
-            <div class="Slider"
-                v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
-                v-drag
-                v-on:drag="HandlerDrag"
-                v-on:dragstart="HandlerDragStart"
-                v-on:dragstop="HandlerDragStop">
-                <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
+            <div class="Frequency"
+                v-bind:class="{High: High, Low: Low}">
+                <button class="Jump Up" v-on:click="Jump(+1)">+</button>
+                <div class="Slider"
+                    v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
+                    v-drag
+                    v-on:drag="HandlerDrag"
+                    v-on:dragstart="HandlerDragStart"
+                    v-on:dragstop="HandlerDragStop">
+                    <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
+                </div>
+                <button class="Jump Down" v-on:click="Jump(-1)">-</button>
             </div>
         </script>
 
