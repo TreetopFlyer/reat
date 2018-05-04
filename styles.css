@@ -75,7 +75,6 @@ form
 .Frequency .Jump
 {
     height:40px;
-    background:#aaa;
     margin:1px;
 }
 .Frequency .Jump button
@@ -102,7 +101,7 @@ form
     bottom:0;
     left:0;
     width:100%;
-    background:#999;
+    background:#eee;
 }
 .Slider.Adjusted .Bar
 {

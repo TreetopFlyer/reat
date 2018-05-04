@@ -6,6 +6,19 @@
         
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
         
+        <!-- dBFS conversion -->
+        <script>
+            var DBFSToGain = function(inDb)
+            {
+                return Math.pow(10, inDb / 20);
+            };
+            
+            var GainToDBFS = function(inGain)
+            {
+                return 20 * Math.log(inGain)/Math.LN10;
+            };
+        </script>
+        
         <!-- Tone -->
         <script>
 var Tone;
@@ -17,7 +30,7 @@ Tone = {
         GainLeft:false,
        GainRight:false,
     ChannelMerge:false,
-    
+        
         Pattern:[0, 1, 0.1, 0, 1, 0.1, 0, 1, 0.1, 0, 0, 0],
        Duration:1,
     KeepBeeping:false,
@@ -68,6 +81,7 @@ Tone.Start = function()
         time =  (i*Tone.Duration/(Tone.Pattern.length-1));
         Tone.GainBeep.gain.linearRampToValueAtTime(value, Tone.Context.currentTime+time);
     }
+    clearInterval(Tone.Timer);
     Tone.Timer = setTimeout(function()
     {
         if(Tone.KeepBeeping)
@@ -82,21 +96,15 @@ Tone.Stop = function()
 }
 Tone.SetFrequency = function(inHz)
 {
-    Tone.Oscillator.frequency.linearRampToValueAtTime(inHz, Tone.Context.currentTime+0.0);
+    Tone.Oscillator.frequency.linearRampToValueAtTime(inHz, Tone.Context.currentTime+0.01);
 };
 Tone.SetStereo = function(inBias)
 {
-    var biasVector = [1, 1];
-    if(inBias == -1)
-    {
-        biasVector[1] = 0;
-    }
-    if(inBias == 1)
-    {
-        biasVector[0] = 0;
-    }
-     Tone.GainLeft.gain.linearRampToValueAtTime(biasVector[0], Tone.Context.currentTime+0.1);
-    Tone.GainRight.gain.linearRampToValueAtTime(biasVector[1], Tone.Context.currentTime+0.1);
+    left = Lerp.Get(-1, -inBias, 1);
+    right = Lerp.Get(-1, inBias, 1);
+    
+    Tone.GainLeft.gain.linearRampToValueAtTime(left, Tone.Context.currentTime+0.01);
+    Tone.GainRight.gain.linearRampToValueAtTime(right, Tone.Context.currentTime+0.01);
 };
 Tone.SetVolume = function(inAmount)
 {
@@ -425,7 +433,7 @@ Drag.Setup = function(inElement)
                         this.Adjusted = true;
 
                         Tone.SetFrequency(this.Hz);
-                        Tone.SetVolume(Lerp.Clip(0, this.Mapped, 1));
+                        Tone.SetVolume(DBFSToGain(this.Mapped));
                         Tone.SetStereo(this.Pan);
                         Tone.Start();
                     },
@@ -447,7 +455,7 @@ Drag.Setup = function(inElement)
                     Update:function(inValue)
                     {
                         this.Recalculate(inValue);
-                        Tone.SetVolume(this.Mapped);
+                        Tone.SetVolume(DBFSToGain(this.Mapped));
                     },
                     Jump:function(inScalar)
                     {
@@ -458,16 +466,16 @@ Drag.Setup = function(inElement)
                         this.HighLimit = false;
                         this.LowLimit = false;
                         
-                        if(this.SlidMin <= 0)
+                        if(this.SlidMin <= -100)
                         {
-                            this.SlidMax -= this.SlidMin;
-                            this.SlidMin = 0;
+                            this.SlidMin = -100;
+                            this.SlidMax = this.SlidMin + range;
                             this.LowLimit = true;
                         }
-                        if(this.SlidMax >= 1)
+                        if(this.SlidMax >= 0)
                         {
-                            this.SlidMin -= (this.SlidMax - 1);
-                            this.SlidMax = 1;
+                            this.SlidMax = 0;
+                            this.SlidMin = this.SlidMax - range;
                             this.HighLimit = true;
                         }
                         
@@ -596,10 +604,10 @@ Drag.Setup = function(inElement)
                 el:"#App",
                 data:{
                     TestFrequencies:[
-                        {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
-                        {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
-                        {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
-                        {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
+                        {Min:-60, Max:0, Steps:50, Hz:4000, Pan:-1},
+                        {Min:-60, Max:0, Steps:50, Hz:4000, Pan:+1},
+                        {Min:-60, Max:0, Steps:50, Hz:250,  Pan:-1},
+                        {Min:-60, Max:0, Steps:50, Hz:250,  Pan:+1}
                     ]
                 },
                 methods:{
