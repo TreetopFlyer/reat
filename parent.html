@@ -1,0 +1,42 @@
+---
+---
+<!DOCTYPE html>
+<html>
+    <head>
+        
+    </head>
+    <body>
+        <button onclick="Message.Send('button click in parent page');">sendtest</button>
+        <iframe width="1024" height="600" src="/index.html"></iframe>
+        
+        <!-- iFrame messaging -->
+        <script>
+var iframe = document.getElementsByTagName("iframe")[0];
+var testSet = [
+    {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:-1},
+    {Min:0,   Max:0.08, Steps:20, Hz:4000, Pan:+1},
+    {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:-1},
+    {Min:0.1, Max:1,    Steps:20, Hz:250,  Pan:+1}
+];
+window.addEventListener("message", function(inMessage)
+{
+    console.log("parent:", inMessage);
+    switch(inMessage.data.Event)
+    {
+        case "Loaded":
+            iframe.contentWindow.postMessage({Event:"Setup", Data:testSet}, "*");
+            break;
+            
+        case "RecordNormal":
+            console.log("normal captured", inMessage.data.Data);
+            break;
+            
+        case "RecordProtected":
+            console.log("protected captured", inMessage.data.Data);
+            break;
+    }
+}, false);
+        </script>
+        
+    </body>
+</html>

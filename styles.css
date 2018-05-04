@@ -1,73 +1,93 @@
+.Frequencies
+{
+    max-width:400px;
+    margin:0 auto;
+}
 
-
-#App
+.Frequency
 {
-    position: absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-}
-.TestSet
-{
-    overflow:hidden;
-    padding:5px;
-}
-.Test
-{
-    height:100%;
-    width:50px;
-    margin:5px;
-}
-.Test.Left
-{
+    position:relative;
     float:left;
+    width:40px;
 }
-.Test.Right
+.Frequency .Jump
 {
-    float:right;
-    width:50px;
+    height:40px;
+    background:#aaa;
+    margin:1px;
 }
-.Test .Cap
+.Frequency .Jump button
 {
     width:100%;
-    height:50px;
-    text-align:center;
-}
-.Test .Cap i
-{
-    display:none;
-}
-.Test.Active .Cap i
-{
-    display:none !important;
-}
-.Test.Completed .Cap i
-{
-    display:block;
+    height:100%;
+    padding:0;
+
 }
 .Slider
 {
     position:relative;
     height:250px;
-    width:100%;
+    border:2px solid #999;
+    border-left:none;
+    border-right:none;
+    margin:1px;
+    overflow:hidden;
     background:#333;
-}
-.Slider:hover
-{
-    box-shadow: 0px 0px 10px #aaa;
-    z-index:999;
+    cursor:pointer;
 }
 .Slider .Bar
-{
-    transition:height 0.3s;
     position:absolute;
     bottom:0;
     left:0;
     width:100%;
-    background-color:#ccc;
+    background:#999;
 }
-.Test.High .Bar
+.Slider.Adjusted .Bar
+{
+    background:#4F0;
+}
+.Slider.Adjusting .Bar
+{
+    background:#F40;
+}
+
+.Slideshow
+{
+    position:relative;
+    overflow:hidden;
+}
+.Slide
+{
+    transition:height 0.3s;
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:100%;
+    height:100%;
+    z-index:1;
+}
+.Slide.Active
+{
+    position:relative;
+    z-index:10;
+    background:#000;
+}
+.Slide.Active.Forward
+{
+    animation: EnterForward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slide.Active.Backward
+{
+    animation: EnterBackward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slide.Inactive.Forward
+{
+    animation: ExitForward ease-out 0.4s;
+    animation-fill-mode: both;
+}
+.Slide.Inactive.Backward
 {
     background-image:url(WaveHigh.png);
     background-position-y: center;
