@@ -60,45 +60,30 @@ form
     text-align:left;
 }
 
+.Frequencies
+{
+    max-width:400px;
+    margin:0 auto;
+}
+
 .Frequency
 {
     position:relative;
     float:left;
-    width:25px;
+    width:40px;
 }
 .Frequency .Jump
 {
-    height:25px;
+    height:40px;
+    background:#aaa;
+    margin:1px;
 }
-.Frequency.High .Jump.Up .Step
+.Frequency .Jump button
 {
-    display:block;
+    width:100%;
+    height:100%;
+    padding:0;
 }
-.Frequency.Low .Jump.Down .Step
-{
-    display:block;
-}
-.Frequency.LimitHigh .Jump.Up .Limit
-{
-    display:block;
-}
-.Frequency.LimitLow .Jump.Down .Limit
-{
-    display:block;
-}
-.Frequency .Jump .Step, .Frequency .Jump .Limit
-{
-    display:none;
-}
-.Frequency.LimitHigh .Jump.Up .Step
-{
-    display:none;
-}
-.Frequency.LimitLow .Jump.Down .Step
-{
-    display:none;
-}
-
 .Slider
 {
     position:relative;
@@ -106,7 +91,7 @@ form
     border:2px solid #999;
     border-left:none;
     border-right:none;
-    margin:5px;
+    margin:1px;
     overflow:hidden;
     background:#333;
     cursor:pointer;

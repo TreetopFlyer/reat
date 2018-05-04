@@ -31,17 +31,17 @@ Tone.Init = function()
 
     // create audio nodes
       Tone.Oscillator = Tone.Context.createOscillator();
-        Tone.GainBeep = Tone.Context.createGain();
         Tone.GainFade = Tone.Context.createGain();
+        Tone.GainBeep = Tone.Context.createGain();
         Tone.GainLeft = Tone.Context.createGain();
        Tone.GainRight = Tone.Context.createGain();
     Tone.ChannelMerge = Tone.Context.createChannelMerger(2);
 
     // wire up audio nodes
-    Tone.Oscillator.connect(Tone.GainBeep);
-      Tone.GainBeep.connect(Tone.GainFade);
-      Tone.GainFade.connect(Tone.GainLeft);
-      Tone.GainFade.connect(Tone.GainRight);
+    Tone.Oscillator.connect(Tone.GainFade);
+      Tone.GainFade.connect(Tone.GainBeep);
+      Tone.GainBeep.connect(Tone.GainLeft);
+      Tone.GainBeep.connect(Tone.GainRight);
       Tone.GainLeft.connect(Tone.ChannelMerge, 0, 0);
      Tone.GainRight.connect(Tone.ChannelMerge, 0, 1);
   Tone.ChannelMerge.connect(Tone.Context.destination);
@@ -204,19 +204,12 @@ Drag.Setup = function(inElement)
         
     </head>
     <body>
-        
 
-        
         <div id="App">
-            <button style="width:200px; height:30px;" onclick="Tone.Context.resume()">R E S U M E</button>
-            <button style="width:200px; height:30px;" onclick="alert(Tone.Context.state)">t r a c e </button>
-
             <Slideshow>
                 <template slot-scope="Slideshow">
                     
                     <Slide>
-                        <h2>REAT Measurement Test</h2>
-                        <p>this is new</p>
                         <div class="Controls">
                             <button onclick="Message.Send('button click in child page');">send test</button>
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
@@ -224,8 +217,6 @@ Drag.Setup = function(inElement)
                     </Slide>
                     
                     <Slide>
-                        <h2>Part One</h2>
-                        <p>Please remove ear protection and make sure headphones fit correctly</p>
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordNormal">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
@@ -236,8 +227,6 @@ Drag.Setup = function(inElement)
                     </Slide> 
                     
                     <Slide>
-                        <h2>Part Two</h2>
-                        <p>Please insert ear protection and make sure headphones fit correctly</p>
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordProtected">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
@@ -248,7 +237,6 @@ Drag.Setup = function(inElement)
                     </Slide> 
                     
                     <Slide>
-                        <h2>Part Three</h2>
                         <button v-on:click="Finish">Finish</button>
                         <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
                     </Slide>
@@ -420,10 +408,10 @@ Drag.Setup = function(inElement)
                         Adjusting:false,
                         SlidMin:this.Min,
                         SlidMax:this.Max,
-                        Low:false,
-                        High:false,
-                        LimitHigh:false,
-                        LimitLow:false,
+                        LowJump:false,
+                        LowLimit:false,
+                        HighJump:false,
+                        HighLimit:false,
                     };
                 },
                 methods:{
@@ -446,7 +434,6 @@ Drag.Setup = function(inElement)
                         this.Adjusting = false;
                         Tone.Stop();
                         this.$emit("done", this.Mapped);
-                        console.log("Check:", this.Mapped);
                     },
                     Recalculate:function(inValue)
                     {
@@ -454,8 +441,8 @@ Drag.Setup = function(inElement)
                         this.Percent = this.Stepped*100;
                         this.Mapped = Lerp.Set(this.SlidMin, this.Stepped, this.SlidMax);
                         
-                        this.Low = (this.Percent < 20);
-                        this.High = (this.Percent > 80);
+                        this.LowJump = (this.Percent < 40);
+                        this.HighJump = (this.Percent > 60);
                     },
                     Update:function(inValue)
                     {
@@ -468,25 +455,20 @@ Drag.Setup = function(inElement)
                         var slide = range*0.8*inScalar;
                         this.SlidMax += slide;
                         this.SlidMin += slide;
-                        this.LimitHigh = false;
-                        this.LimitLow = false;
+                        this.HighLimit = false;
+                        this.LowLimit = false;
                         
-                        // check that the min and max arent going out of range
                         if(this.SlidMin <= 0)
                         {
-                            //slid min went negative, so subtract the negative to go back up
                             this.SlidMax -= this.SlidMin;
                             this.SlidMin = 0;
-                            this.LimitLow = true;
-                            
-                            console.log("it went under");
+                            this.LowLimit = true;
                         }
                         if(this.SlidMax >= 1)
                         {
                             this.SlidMin -= (this.SlidMax - 1);
                             this.SlidMax = 1;
-                            this.LimitHigh = true;
-                            console.log("it went over");
+                            this.HighLimit = true;
                         }
                         
                         var rel = (0.5 - 0.25*inScalar);
@@ -495,9 +477,13 @@ Drag.Setup = function(inElement)
                     },
                     Reset:function()
                     {
-                        this.Recalculate(0.8);
+                        this.Recalculate(0.5);
                         this.Adjusted = false;
                         this.Adjusting = false;
+                        this.SlidMin = this.Min;
+                        this.SlidMax = this.Max;
+                        this.HighLimit = false;
+                        this.LowLimit = false;
                     }
                 },
                 mounted:function(){
@@ -507,12 +493,11 @@ Drag.Setup = function(inElement)
             })
         </script>
         <script type="x-template" id="TemplateSlider">
-            <div class="Frequency"
-                v-bind:class="{High: High, Low: Low, LimitHigh: LimitHigh, LimitLow: LimitLow}">
+            <div class="Frequency" v-bind:class="">
                 
-                <div class="Jump Up">
-                    <span class="Limit">(MAX)</span>
-                    <button class="Step" v-on:click="Jump(+1)">+</button>
+                <div class="Jump High">
+                    <button class="Limit" v-if="HighLimit" disabled>(MAX)</button>
+                    <button class="Step" v-if="HighJump && !HighLimit" v-on:click="Jump(+1)">+</button>
                 </div>
                 <div class="Slider"
                     v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
@@ -522,9 +507,9 @@ Drag.Setup = function(inElement)
                     v-on:dragstop="HandlerDragStop">
                     <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
                 </div>
-                <div class="Jump Down">
-                    <button class="Step" v-on:click="Jump(-1)">-</button>
-                    <span class="Limit">(MIN)</span>
+                <div class="Jump Low">
+                    <button class="Limit" v-if="LowLimit" disabled>(MIN)</button>
+                    <button class="Step" v-if="LowJump && !LowLimit" v-on:click="Jump(-1)">-</button>
                 </div>
                 
             </div>
@@ -599,7 +584,7 @@ Drag.Setup = function(inElement)
                     <button v-on:click="Reset" v-show="Started">Reset Default</button>
                     <button v-on:click="$root.Next" v-show="Done">Next Default</button>
                 </slot>
-                <div style="overflow:hidden;">
+                <div class="Frequencies">
                     <Slider v-for="(value, key) in Test" v-bind="value" v-on:done="Update(key, $event)"></Slider>
                 </div>
             </div>
