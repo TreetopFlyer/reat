@@ -82,7 +82,7 @@ Tone.Stop = function()
 }
 Tone.SetFrequency = function(inHz)
 {
-    Tone.Oscillator.frequency.linearRampToValueAtTime(inHz, Tone.Context.currentTime+0.1);
+    Tone.Oscillator.frequency.linearRampToValueAtTime(inHz, Tone.Context.currentTime+0.0);
 };
 Tone.SetStereo = function(inBias)
 {
@@ -100,7 +100,7 @@ Tone.SetStereo = function(inBias)
 };
 Tone.SetVolume = function(inAmount)
 {
-    Tone.GainFade.gain.linearRampToValueAtTime(inAmount, Tone.Context.currentTime);
+    Tone.GainFade.gain.linearRampToValueAtTime(inAmount, Tone.Context.currentTime+0.1);
 }
 Tone.Init();
         </script>
@@ -421,7 +421,9 @@ Drag.Setup = function(inElement)
                         SlidMin:this.Min,
                         SlidMax:this.Max,
                         Low:false,
-                        High:false
+                        High:false,
+                        LimitHigh:false,
+                        LimitLow:false,
                     };
                 },
                 methods:{
@@ -462,25 +464,40 @@ Drag.Setup = function(inElement)
                     },
                     Jump:function(inScalar)
                     {
-                        console.log("Before:", this.SlidMin, this.Stepped, this.SlidMax);
                         var range = this.SlidMax - this.SlidMin;
                         var slide = range*0.8*inScalar;
                         this.SlidMax += slide;
                         this.SlidMin += slide;
-                        var rel = (0.5 + 0.25*inScalar);
-                        console.log("Slider percent", rel);
-                        this.Update(Lerp.Set(this.SlidMin, rel, this.SlidMax));
-                        console.log("After:", this.SlidMin, this.Stepped, this.SlidMax);
+                        this.LimitHigh = false;
+                        this.LimitLow = false;
+                        
+                        // check that the min and max arent going out of range
+                        if(this.SlidMin <= 0)
+                        {
+                            //slid min went negative, so subtract the negative to go back up
+                            this.SlidMax -= this.SlidMin;
+                            this.SlidMin = 0;
+                            this.LimitLow = true;
+                            
+                            console.log("it went under");
+                        }
+                        if(this.SlidMax >= 1)
+                        {
+                            this.SlidMin -= (this.SlidMax - 1);
+                            this.SlidMax = 1;
+                            this.LimitHigh = true;
+                            console.log("it went over");
+                        }
+                        
+                        var rel = (0.5 - 0.25*inScalar);
+                        this.Update(rel);
+                        console.log(this.SlidMin, this.Mapped, this.SlidMax);
                     },
                     Reset:function()
                     {
                         this.Recalculate(0.8);
                         this.Adjusted = false;
                         this.Adjusting = false;
-                    },
-                    Collect:function()
-                    {
-                        return {Hz:this.Hz, Pan:this.Pan, Volume:this.Mapped};
                     }
                 },
                 mounted:function(){
@@ -491,8 +508,12 @@ Drag.Setup = function(inElement)
         </script>
         <script type="x-template" id="TemplateSlider">
             <div class="Frequency"
-                v-bind:class="{High: High, Low: Low}">
-                <button class="Jump Up" v-on:click="Jump(+1)">+</button>
+                v-bind:class="{High: High, Low: Low, LimitHigh: LimitHigh, LimitLow: LimitLow}">
+                
+                <div class="Jump Up">
+                    <span class="Limit">(MAX)</span>
+                    <button class="Step" v-on:click="Jump(+1)">+</button>
+                </div>
                 <div class="Slider"
                     v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
                     v-drag
@@ -501,7 +522,11 @@ Drag.Setup = function(inElement)
                     v-on:dragstop="HandlerDragStop">
                     <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
                 </div>
-                <button class="Jump Down" v-on:click="Jump(-1)">-</button>
+                <div class="Jump Down">
+                    <button class="Step" v-on:click="Jump(-1)">-</button>
+                    <span class="Limit">(MIN)</span>
+                </div>
+                
             </div>
         </script>
 

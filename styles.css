@@ -68,19 +68,37 @@ form
 }
 .Frequency .Jump
 {
-    display:block;
-    visibility:hidden;
-    width:100%;
     height:25px;
 }
-.Frequency.High .Jump.Up
+.Frequency.High .Jump.Up .Step
 {
-    visibility: visible;
+    display:block;
 }
-.Frequency.Low .Jump.Down
+.Frequency.Low .Jump.Down .Step
 {
-    visibility: visible;
+    display:block;
 }
+.Frequency.LimitHigh .Jump.Up .Limit
+{
+    display:block;
+}
+.Frequency.LimitLow .Jump.Down .Limit
+{
+    display:block;
+}
+.Frequency .Jump .Step, .Frequency .Jump .Limit
+{
+    display:none;
+}
+.Frequency.LimitHigh .Jump.Up .Step
+{
+    display:none;
+}
+.Frequency.LimitLow .Jump.Down .Step
+{
+    display:none;
+}
+
 .Slider
 {
     position:relative;
