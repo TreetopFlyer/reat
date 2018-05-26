@@ -4,6 +4,8 @@
 <html>
     <head>
         
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="UTF-8">
         <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
         
         <!-- dBFS conversion -->
@@ -26,7 +28,7 @@ Tone = {
          Context:false,
       Oscillator:false,
         GainBeep:false,
-        GainFade:false,
+        GainVolume:false,
         GainLeft:false,
        GainRight:false,
     ChannelMerge:false,
@@ -44,15 +46,15 @@ Tone.Init = function()
 
     // create audio nodes
       Tone.Oscillator = Tone.Context.createOscillator();
-        Tone.GainFade = Tone.Context.createGain();
+        Tone.GainVolume = Tone.Context.createGain();
         Tone.GainBeep = Tone.Context.createGain();
         Tone.GainLeft = Tone.Context.createGain();
        Tone.GainRight = Tone.Context.createGain();
     Tone.ChannelMerge = Tone.Context.createChannelMerger(2);
 
     // wire up audio nodes
-    Tone.Oscillator.connect(Tone.GainFade);
-      Tone.GainFade.connect(Tone.GainBeep);
+    Tone.Oscillator.connect(Tone.GainVolume);
+      Tone.GainVolume.connect(Tone.GainBeep);
       Tone.GainBeep.connect(Tone.GainLeft);
       Tone.GainBeep.connect(Tone.GainRight);
       Tone.GainLeft.connect(Tone.ChannelMerge, 0, 0);
@@ -60,9 +62,10 @@ Tone.Init = function()
   Tone.ChannelMerge.connect(Tone.Context.destination);
 
     // start
-     Tone.GainBeep.gain.value = 0;
-     Tone.GainLeft.gain.value = 0.5;
-    Tone.GainRight.gain.value = 0.5;
+      Tone.GainBeep.gain.value = 0;
+      Tone.GainLeft.gain.value = 0;
+     Tone.GainRight.gain.value = 0;
+    Tone.GainVolume.gain.value = 0;
     Tone.Oscillator.start(Tone.Context.currentTime+0.0);
 };
 Tone.Start = function()
@@ -108,7 +111,7 @@ Tone.SetStereo = function(inBias)
 };
 Tone.SetVolume = function(inAmount)
 {
-    Tone.GainFade.gain.linearRampToValueAtTime(inAmount, Tone.Context.currentTime+0.1);
+    Tone.GainVolume.gain.linearRampToValueAtTime(inAmount, Tone.Context.currentTime+0.1);
 }
 Tone.Init();
         </script>
@@ -219,7 +222,6 @@ Drag.Setup = function(inElement)
                     
                     <Slide>
                         <div class="Controls">
-                            <button onclick="Message.Send('button click in child page');">send test</button>
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
                         </div>
                     </Slide>
@@ -245,8 +247,23 @@ Drag.Setup = function(inElement)
                     </Slide> 
                     
                     <Slide>
-                        <button v-on:click="Finish">Finish</button>
-                        <button v-on:click="Slideshow.Change(0, true)">Start Over</button>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.Change(0, true)">Back to beginning</button>
+                        </div>
+                        <table style="width:100%;">
+                            <tr>
+                                <th>&nbsp;</th><th v-for="freq in TestFrequencies"><span v-html="freq.Hz"></span> <span v-if="freq.Pan<0">Left</span><span v-if="freq.Pan>0">Right</span></th>
+                            </tr>
+                            <tr>
+                                <td>1st:</td><td v-for="db in ResultsNormal" v-html="db.toFixed(2)"></td>
+                            </tr>
+                            <tr>
+                                <td>2nd:</td><td v-for="db in ResultsProtected" v-html="db.toFixed(2)"></td>
+                            </tr>
+                            <tr>
+                                <td>Diff:</td><td v-for="(value, key) in ResultsNormal" v-html="Math.abs(value - ResultsProtected[key]).toFixed(2)"></td>
+                            </tr>
+                        </table>
                     </Slide>
                     
                 </template>
@@ -416,6 +433,7 @@ Drag.Setup = function(inElement)
                         Adjusting:false,
                         SlidMin:this.Min,
                         SlidMax:this.Max,
+                        SlidIndex:0,
                         LowJump:false,
                         LowLimit:false,
                         HighJump:false,
@@ -443,32 +461,33 @@ Drag.Setup = function(inElement)
                         Tone.Stop();
                         this.$emit("done", this.Mapped);
                     },
-                    Recalculate:function(inValue)
+                    ScreenToVolume:function(inValue)
                     {
                         this.Stepped = Math.floor(inValue*this.Steps)/this.Steps;
                         this.Percent = this.Stepped*100;
                         this.Mapped = Lerp.Set(this.SlidMin, this.Stepped, this.SlidMax);
                         
-                        this.LowJump = (this.Percent < 40);
-                        this.HighJump = (this.Percent > 60);
+                        this.LowJump = (this.Percent < 30);
+                        this.HighJump = (this.Percent > 70);
                     },
                     Update:function(inValue)
                     {
-                        this.Recalculate(inValue);
+                        this.ScreenToVolume(inValue);
                         Tone.SetVolume(DBFSToGain(this.Mapped));
                     },
                     Jump:function(inScalar)
                     {
-                        var range = this.SlidMax - this.SlidMin;
-                        var slide = range*0.8*inScalar;
-                        this.SlidMax += slide;
-                        this.SlidMin += slide;
+                        this.SlidIndex += inScalar;
+                        var range = this.Max - this.Min;
+                        this.SlidMax = this.Max + this.SlidIndex*range*0.5;
+                        this.SlidMin = this.SlidMax - range;
+                        
                         this.HighLimit = false;
                         this.LowLimit = false;
                         
-                        if(this.SlidMin <= -100)
+                        if(this.SlidMin <= -150)
                         {
-                            this.SlidMin = -100;
+                            this.SlidMin = -150;
                             this.SlidMax = this.SlidMin + range;
                             this.LowLimit = true;
                         }
@@ -479,19 +498,17 @@ Drag.Setup = function(inElement)
                             this.HighLimit = true;
                         }
                         
-                        var rel = (0.5 - 0.25*inScalar);
+                        var rel = Lerp.Get(this.SlidMin, this.Mapped, this.SlidMax);
                         this.Update(rel);
                         console.log(this.SlidMin, this.Mapped, this.SlidMax);
                     },
                     Reset:function()
                     {
-                        this.Recalculate(0.5);
+                        this.ScreenToVolume(0.5);
+                        
                         this.Adjusted = false;
                         this.Adjusting = false;
-                        this.SlidMin = this.Min;
-                        this.SlidMax = this.Max;
-                        this.HighLimit = false;
-                        this.LowLimit = false;
+                        this.Jump(0);
                     }
                 },
                 mounted:function(){
@@ -504,8 +521,11 @@ Drag.Setup = function(inElement)
             <div class="Frequency" v-bind:class="">
                 
                 <div class="Jump High">
-                    <button class="Limit" v-if="HighLimit" disabled>(MAX)</button>
-                    <button class="Step" v-if="HighJump && !HighLimit" v-on:click="Jump(+1)">+</button>
+                    <div class="Readout" v-html="SlidMax"></div>
+                    <button class="Step" :disabled="!HighJump || HighLimit" v-on:click="Jump(+1)">
+                        <span v-if="!HighLimit">▲</span>
+                        <span class="Limit" v-if="HighLimit">(MAX)</span>
+                    </button>
                 </div>
                 <div class="Slider"
                     v-bind:class="{Adjusting: Adjusting, Adjusted: Adjusted}"
@@ -513,11 +533,14 @@ Drag.Setup = function(inElement)
                     v-on:drag="HandlerDrag"
                     v-on:dragstart="HandlerDragStart"
                     v-on:dragstop="HandlerDragStop">
-                    <div class="Bar" v-bind:style="{height:Percent+'%'}"></div>
+                    <div class="Bar" v-bind:style="{height:Percent+'%'}"><span class="Badge" v-html="Math.floor(Mapped)"></span></div>
                 </div>
                 <div class="Jump Low">
-                    <button class="Limit" v-if="LowLimit" disabled>(MIN)</button>
-                    <button class="Step" v-if="LowJump && !LowLimit" v-on:click="Jump(-1)">-</button>
+                    <button class="Step" :disabled="!LowJump || LowLimit" v-on:click="Jump(-1)">
+                        <span v-if="!LowLimit">▼</span>
+                        <span class="Limit" v-if="LowLimit">(MIN)</span>
+                    </button>
+                    <div class="Readout" v-html="SlidMin"></div>
                 </div>
                 
             </div>
@@ -604,20 +627,24 @@ Drag.Setup = function(inElement)
                 el:"#App",
                 data:{
                     TestFrequencies:[
-                        {Min:-60, Max:0, Steps:50, Hz:4000, Pan:-1},
-                        {Min:-60, Max:0, Steps:50, Hz:4000, Pan:+1},
-                        {Min:-60, Max:0, Steps:50, Hz:250,  Pan:-1},
-                        {Min:-60, Max:0, Steps:50, Hz:250,  Pan:+1}
-                    ]
+                        {Min:-60, Max:0, Steps:100, Hz:4000, Pan:-1},
+                        {Min:-60, Max:0, Steps:100, Hz:4000, Pan:+1},
+                        {Min:-60, Max:0, Steps:100, Hz:250,  Pan:-1},
+                        {Min:-60, Max:0, Steps:100, Hz:250,  Pan:+1}
+                    ],
+                    ResultsNormal:[],
+                    ResultsProtected:[]
                 },
                 methods:{
                     RecordNormal:function(inData)
                     {
+                        this.ResultsNormal = inData;
                         console.log("record normal called", inData);
                         window.parent.postMessage({Event:"RecordNormal", Data:inData}, "*");
                     },
                     RecordProtected:function(inData)
                     {
+                        this.ResultsProtected = inData;
                         console.log("record protected called", inData);
                         window.parent.postMessage({Event:"RecordProtected", Data:inData}, "*");
                     },
