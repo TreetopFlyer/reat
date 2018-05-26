@@ -1,12 +1,22 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito|Open+Sans');
 body
 {
     margin:0;
     background:#000;
-    font-family: Arial;
+    font-family: Open Sans, Arial;
+}
+h1, h2, h3, h4, h5
+{
+    color: #e0e0ff;
+    font-family:Open Sans, Arial;
+    font-weight: lighter;
+}
+p
+{
+    color:#ddd;
 }
 .Band
 {
-    text-align:center;
 }
 .Band .Center
 {
@@ -49,11 +59,11 @@ body
 .Band.Slide
 {
     color:#fff;
+    background:#0a0a0a;
 }
 .Band.Slide .Center
 {
     background:#111;
-    
 }
 
 form
@@ -64,12 +74,45 @@ form
 .Controls
 {
     padding:10px;
+    border-top: 1px solid #292929;
+    text-align:center;
+    letter-spacing: -0.2em;
 }
 .Controls button
 {
-    padding:10px;
+    padding: 5px 20px 5px 20px;
+    border: 5px solid #252525;
+    background: #4a4a4a;
+    color: #fff;
 }
-
+.Controls button i
+{
+    font-style: normal;
+}
+.Controls button:not([disabled]):hover
+{
+    cursor:pointer;
+    background: #676773;
+}
+.Controls button:first-child
+{
+    border-top-left-radius:30px;
+    border-bottom-left-radius:30px;
+}
+.Controls button:last-child
+{
+    border-top-right-radius:30px;
+    border-bottom-right-radius:30px;
+}
+.Controls button[disabled]
+{
+    color: #737373;
+    background: #171717;
+}
+.Test
+{
+    text-align:center;
+}
 .Frequencies
 {
     overflow: hidden;
@@ -77,7 +120,6 @@ form
     max-width:400px;
     margin:0 auto;
 }
-
 .Frequency
 {
     position:relative;
@@ -160,7 +202,6 @@ form
 {
     position:relative;
     z-index:10;
-    background:#000;
 }
 .Slide.Active.Forward
 {

@@ -221,17 +221,40 @@ Drag.Setup = function(inElement)
                 <template slot-scope="Slideshow">
                     
                     <Slide>
+                        <h2>Start your hearing test</h2>
+                        <p>
+                            Use the pulldown menu to choose your attenuation level, either 9, 15, or 25 dB. If you are unsure of which filters you have,
+                            you can look at the filter itself. There is a small number indicating the filter level.
+                        </p>
                         <div class="Controls">
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
                         </div>
                     </Slide>
-                    
                     <Slide>
+                        <h2>Part 1</h2>
+                        <p>
+                            <u>Without</u> your hearing protection, place your headphones over your ears in a comfortable
+                            position.
+                        </p>
+                        <p>
+                            Use the sliders to adjust the volume of the tones until they are so soft
+                            that they are just barely audible.
+                        </p>
+                        <p>
+                            Proceed to the next part after adjusting all of the sliders.
+                        </p>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.Previous">Back</button>
+                            <button v-on:click="Slideshow.Next">OK</button>
+                        </div>
+                    </Slide>
+                    <Slide>
+                        <h3><strong>Part 1</strong>: <u>Remove</u> hearing protection</h3>
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordNormal">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
-                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
-                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
+                                <button v-on:click="TestSet.Reset"  :disabled="!TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.Next" :disabled="!TestSet.Done">Done</button>
                             </div>
                         </Test-Set>
                     </Slide> 
@@ -240,8 +263,8 @@ Drag.Setup = function(inElement)
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordProtected">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
-                                <button v-on:click="TestSet.Reset" v-show="TestSet.Started">Reset</button>
-                                <button v-on:click="Slideshow.Next" v-show="TestSet.Done">Next</button>
+                                <button v-on:click="TestSet.Reset"  :disabled="!TestSet.Started">Reset</button>
+                                <button v-on:click="Slideshow.Next" :disabled="!TestSet.Done">Done </button>
                             </div>
                         </Test-Set>
                     </Slide> 
@@ -504,11 +527,11 @@ Drag.Setup = function(inElement)
                     },
                     Reset:function()
                     {
-                        this.ScreenToVolume(0.5);
-                        
                         this.Adjusted = false;
                         this.Adjusting = false;
-                        this.Jump(0);
+                        this.SlidMin = this.Min;
+                        this.SlidMax = this.Max;
+                        this.ScreenToVolume(0.5);
                     }
                 },
                 mounted:function(){
@@ -612,8 +635,8 @@ Drag.Setup = function(inElement)
             <div class="Test">
                 <slot v-bind="this">
                     <button v-on:click="$root.Previous">Back Default</button>
-                    <button v-on:click="Reset" v-show="Started">Reset Default</button>
-                    <button v-on:click="$root.Next" v-show="Done">Next Default</button>
+                    <button v-on:click="Reset" :disabled="!Started">Reset Default</button>
+                    <button v-on:click="$root.Next" :disabled="!Done">Next Default</button>
                 </slot>
                 <div class="Frequencies">
                     <Slider v-for="(value, key) in Test" v-bind="value" v-on:done="Update(key, $event)"></Slider>
