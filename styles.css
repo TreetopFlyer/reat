@@ -1,46 +1,178 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito|Open+Sans');
+body
+{
+    margin:0;
+    background:#000;
+    font-family: Open Sans, Arial;
+}
+h1, h2, h3, h4, h5
+{
+    color: #e0e0ff;
+    font-family:Open Sans, Arial;
+    font-weight: lighter;
+}
+p
+{
+    color:#ddd;
+}
+.Band
+{
+}
+.Band .Center
+{
+    max-width:600px;
+    margin:0 auto;
+}
+.Pad
+{
+    display:block;
+    padding:1rem 2rem 1rem 2rem;
+}
+.Band.Title
+{
+    background:#eeeeee;
+}
+.Band.Title .Center
+{
+    background:#fff;
+}
+.Band.Menu
+{
+    display:none;
+}
+.Band.Menu a
+{
+    display:block;
+    overflow:hidden;
+    height:0;
+    padding:0;
+    margin:0;
+    border:0;
+    transition:all 0.4s;
+}
+.Menu .Band.Menu a
+{
+    height:3em;
+    padding:0.5em;
+    border:1px;
+}
+.Band.Slide
+{
+    color:#fff;
+    background:#0a0a0a;
+}
+.Band.Slide .Center
+{
+    background:#111;
+}
+
+form
+{
+    text-align:left;
+}
+
+.Controls
+{
+    padding:10px;
+    border-top: 1px solid #292929;
+    text-align:center;
+    letter-spacing: -0.2em;
+}
+.Controls button
+{
+    padding: 5px 20px 5px 20px;
+    border: 5px solid #252525;
+    background: #4a4a4a;
+    color: #fff;
+}
+.Controls button i
+{
+    font-style: normal;
+}
+.Controls button:not([disabled]):hover
+{
+    cursor:pointer;
+    background: #676773;
+}
+.Controls button:first-child
+{
+    border-top-left-radius:30px;
+    border-bottom-left-radius:30px;
+}
+.Controls button:last-child
+{
+    border-top-right-radius:30px;
+    border-bottom-right-radius:30px;
+}
+.Controls button[disabled]
+{
+    color: #737373;
+    background: #171717;
+}
+.Test
+{
+    text-align:center;
+}
 .Frequencies
 {
+    overflow: hidden;
+    display: inline-block;
     max-width:400px;
     margin:0 auto;
 }
-
 .Frequency
 {
     position:relative;
     float:left;
     width:40px;
+    margin:1px;
+    padding:3px;
+    font-size:10px;
+}
+.Frequency .Badge
+{
+    position:absolute;
+    top:-8px;
+    width:85%;
+    padding:2px 0 2px 0;
+    left:7.5%;
+    background:#000;
+    border-radius:20px;
 }
 .Frequency .Jump
 {
-    height:40px;
-    background:#aaa;
     margin:1px;
 }
 .Frequency .Jump button
 {
     width:100%;
-    height:100%;
-    padding:0;
-
+}
+.Frequency .Jump .Limit
+{
+    font-size:8px;
+}
+.Frequency .Readout
+{
+    text-align:center;
+    font-size:10px;
+    padding:8px;
 }
 .Slider
 {
     position:relative;
     height:250px;
-    border:2px solid #999;
-    border-left:none;
-    border-right:none;
     margin:1px;
     overflow:hidden;
     background:#333;
     cursor:pointer;
 }
 .Slider .Bar
+{
     position:absolute;
     bottom:0;
     left:0;
     width:100%;
-    background:#999;
+    background:#eee;
 }
 .Slider.Adjusted .Bar
 {
@@ -70,7 +202,6 @@
 {
     position:relative;
     z-index:10;
-    background:#000;
 }
 .Slide.Active.Forward
 {
