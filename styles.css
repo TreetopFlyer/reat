@@ -13,7 +13,7 @@ h1, h2, h3, h4, h5
 }
 p
 {
-    color:#ddd;
+    color:#b1b1b1;
 }
 .Band
 {
@@ -69,6 +69,22 @@ p
 form
 {
     text-align:left;
+}
+
+ol
+{
+
+}
+ol input
+{
+    position:relative;
+    top:4px;
+    width:20px;
+    height:20px;
+}
+ol li
+{
+    margin-top:10px;
 }
 
 .Controls
@@ -132,7 +148,7 @@ form
 .Frequency .Badge
 {
     position:absolute;
-    top:-8px;
+    top:-10px;
     width:85%;
     padding:2px 0 2px 0;
     left:7.5%;
@@ -172,6 +188,7 @@ form
     bottom:0;
     left:0;
     width:100%;
+    border-top:4px solid #000;
     background:#eee;
 }
 .Slider.Adjusted .Bar

@@ -233,23 +233,23 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part 1</h2>
                         <p>
-                            <u>Without</u> your hearing protection, place your headphones over your ears in a comfortable
-                            position.
+                            Without your hearing protection, place your headphones over your ears in a comfortable position.
                         </p>
-                        <p>
-                            Use the sliders to adjust the volume of the tones until they are so soft
-                            that they are just barely audible.
-                        </p>
-                        <p>
-                            Proceed to the next part after adjusting all of the sliders.
-                        </p>
+                        <p>Please confirm before continuing:</p>
+                        <ol>
+                            <li><input v-model="Normal.Protection" type="checkbox"/> My hearing protection is removed.</li>
+                            <li><input v-model="Normal.Headphones" type="checkbox"/> My headphones are over my ears in a comfortable position.</li>
+                        </ol>
                         <div class="Controls">
                             <button v-on:click="Slideshow.Previous">Back</button>
-                            <button v-on:click="Slideshow.Next">OK</button>
+                            <button v-on:click="Slideshow.Next" :disabled="!Normal.Protection || !Normal.Headphones" >OK</button>
                         </div>
                     </Slide>
                     <Slide>
-                        <h3><strong>Part 1</strong>: <u>Remove</u> hearing protection</h3>
+                        <h3><strong>Part 1</strong>: <u>Without</u> hearing protection</h3>
+                        <p>
+                            Use the sliders to adjust the volume of the tones until they are so soft that they are just barely audible.
+                        </p>
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordNormal">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
@@ -258,8 +258,42 @@ Drag.Setup = function(inElement)
                             </div>
                         </Test-Set>
                     </Slide> 
-                    
                     <Slide>
+                        <h2>Part 2</h2>
+                        <p>
+                            Now insert your hearing protection. If you are unsure of how to insert the earplugs,
+                            please refer to this video (video link).
+                        </p>
+                        <p>
+                            Once your earplugs are fully inserted, place your headphones over your ears in a comfortable position.
+                        </p>
+                        <p>Please confirm before continuing:</p>
+                        <ol>
+                            <li>
+                                I am wearing:
+                                <select v-model="Protected.Protection">
+                                    <option option v-bind:value="0" disabled selected >None</option>
+                                    <option option v-bind:value="9">9 dB</option>
+                                    <option option v-bind:value="15">15 dB</option>
+                                    <option option v-bind:value="25">25 dB</option>
+                                </select>
+                                filtered earplugs*.
+                            </li>
+                            <li><input v-model="Protected.Headphones" type="checkbox"/> My headphones are over my ears in a comfortable position.</li>
+                        </ol>
+                        <p>
+                            * <em>If you are unsure of which filters you have, you can look at the filter itself. There is a small number indicating the filter level</em>.
+                        </p>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.Previous">Back</button>
+                            <button v-on:click="Slideshow.Next" :disabled="!Protected.Protection || !Protected.Headphones" >OK</button>
+                        </div>
+                    </Slide>
+                    <Slide>
+                        <h3><strong>Part 2</strong>: <u>With</u> hearing protection</h3>
+                        <p>
+                            Use the sliders to adjust the volume of the tones until they are so soft that they are just barely audible.
+                        </p>
                         <Test-Set v-bind:Test="TestFrequencies" v-on:done="RecordProtected">
                             <div class="Controls" slot-scope="TestSet">
                                 <button v-on:click="Slideshow.Previous">Back</button>
@@ -278,13 +312,13 @@ Drag.Setup = function(inElement)
                                 <th>&nbsp;</th><th v-for="freq in TestFrequencies"><span v-html="freq.Hz"></span> <span v-if="freq.Pan<0">Left</span><span v-if="freq.Pan>0">Right</span></th>
                             </tr>
                             <tr>
-                                <td>1st:</td><td v-for="db in ResultsNormal" v-html="db.toFixed(2)"></td>
+                                <td>1st:</td><td v-for="db in Normal.Results" v-html="db.toFixed(2)"></td>
                             </tr>
                             <tr>
-                                <td>2nd:</td><td v-for="db in ResultsProtected" v-html="db.toFixed(2)"></td>
+                                <td>2nd:</td><td v-for="db in Protected.Results" v-html="db.toFixed(2)"></td>
                             </tr>
                             <tr>
-                                <td>Diff:</td><td v-for="(value, key) in ResultsNormal" v-html="Math.abs(value - ResultsProtected[key]).toFixed(2)"></td>
+                                <td>Diff:</td><td v-for="(value, key) in Normal.Results" v-html="Math.abs(value - Protected.Results[key]).toFixed(2)"></td>
                             </tr>
                         </table>
                     </Slide>
@@ -655,19 +689,27 @@ Drag.Setup = function(inElement)
                         {Min:-60, Max:0, Steps:100, Hz:250,  Pan:-1},
                         {Min:-60, Max:0, Steps:100, Hz:250,  Pan:+1}
                     ],
-                    ResultsNormal:[],
-                    ResultsProtected:[]
+                    Normal:{
+                        Protection:0,
+                        Headphones:false,
+                        Results:[]
+                    },
+                    Protected:{
+                        Protection:0,
+                        Headphones:false,
+                        Results:[]
+                    }
                 },
                 methods:{
                     RecordNormal:function(inData)
                     {
-                        this.ResultsNormal = inData;
+                        this.Normal.Results = inData;
                         console.log("record normal called", inData);
                         window.parent.postMessage({Event:"RecordNormal", Data:inData}, "*");
                     },
                     RecordProtected:function(inData)
                     {
-                        this.ResultsProtected = inData;
+                        this.Protected.Results = inData;
                         console.log("record protected called", inData);
                         window.parent.postMessage({Event:"RecordProtected", Data:inData}, "*");
                     },
