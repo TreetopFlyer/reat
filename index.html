@@ -215,13 +215,19 @@ Drag.Setup = function(inElement)
         
     </head>
     <body>
-
         <div id="App">
+            <div class="Band Title">
+                <div class="Center">
+                    <div class="Pad">
+                        Soundcheck | REAT Measurement
+                    </div>
+                </div>
+            </div>
             <Slideshow>
                 <template slot-scope="Slideshow">
                     
                     <Slide>
-                        <h2>Start your hearing test</h2>
+                        <h2>Being your hearing test</h2>
                         <p>
                             Use the pulldown menu to choose your attenuation level, either 9, 15, or 25 dB. If you are unsure of which filters you have,
                             you can look at the filter itself. There is a small number indicating the filter level.
@@ -237,8 +243,8 @@ Drag.Setup = function(inElement)
                         </p>
                         <p>Please confirm before continuing:</p>
                         <ol>
-                            <li><input v-model="Normal.Protection" type="checkbox"/> My hearing protection is removed.</li>
-                            <li><input v-model="Normal.Headphones" type="checkbox"/> My headphones are over my ears in a comfortable position.</li>
+                            <li><input v-model="Normal.Protection" type="checkbox" id="Normal.Protection"/> <label for="Normal.Protection">My hearing protection is removed.</label></li>
+                            <li><input v-model="Normal.Headphones" type="checkbox" id="Normal.Headphones"/> <label for="Normal.Headphones">My headphones are over my ears in a comfortable position.</label></li>
                         </ol>
                         <div class="Controls">
                             <button v-on:click="Slideshow.Previous">Back</button>
@@ -279,7 +285,7 @@ Drag.Setup = function(inElement)
                                 </select>
                                 filtered earplugs*.
                             </li>
-                            <li><input v-model="Protected.Headphones" type="checkbox"/> My headphones are over my ears in a comfortable position.</li>
+                            <li><input v-model="Protected.Headphones" id="Protected.Headphones" type="checkbox"/> <label for="Protected.Headphones">My headphones are over my ears in a comfortable position.</label></li>
                         </ol>
                         <p>
                             * <em>If you are unsure of which filters you have, you can look at the filter itself. There is a small number indicating the filter level</em>.
@@ -304,9 +310,7 @@ Drag.Setup = function(inElement)
                     </Slide> 
                     
                     <Slide>
-                        <div class="Controls">
-                            <button v-on:click="Slideshow.Change(0, true)">Back to beginning</button>
-                        </div>
+                        
                         <table style="width:100%;">
                             <tr>
                                 <th>&nbsp;</th><th v-for="freq in TestFrequencies"><span v-html="freq.Hz"></span> <span v-if="freq.Pan<0">Left</span><span v-if="freq.Pan>0">Right</span></th>
@@ -318,9 +322,12 @@ Drag.Setup = function(inElement)
                                 <td>2nd:</td><td v-for="db in Protected.Results" v-html="db.toFixed(2)"></td>
                             </tr>
                             <tr>
-                                <td>Diff:</td><td v-for="(value, key) in Normal.Results" v-html="Math.abs(value - Protected.Results[key]).toFixed(2)"></td>
+                                <td>Diff:</td><td v-for="(value, key) in Normal.Results" v-html="(value - Protected.Results[key]).toFixed(2)"></td>
                             </tr>
                         </table>
+                        <div class="Controls">
+                            <button v-on:click="Slideshow.Change(0, true)">Back to beginning</button>
+                        </div>
                     </Slide>
                     
                 </template>
@@ -565,6 +572,7 @@ Drag.Setup = function(inElement)
                         this.Adjusting = false;
                         this.SlidMin = this.Min;
                         this.SlidMax = this.Max;
+                        this.SlidIndex = 0;
                         this.ScreenToVolume(0.5);
                     }
                 },
