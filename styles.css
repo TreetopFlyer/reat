@@ -207,7 +207,7 @@ ol li
 }
 .Slide
 {
-    transition:height 0.3s;
+    display:block;
     position:absolute;
     top:0;
     left:-100%;
@@ -237,19 +237,26 @@ ol li
 }
 .Slide.Inactive.Backward
 {
-    background-image:url(WaveHigh.png);
-    background-position-y: center;
+    animation: ExitBackward ease-out 0.4s;
+    animation-fill-mode: both;
 }
-.Test.Low .Bar
+@keyframes EnterForward
 {
-    background-image:url(WaveLow.png);
-    background-position-y: center;
+    from{left:100%}
+    to{left:0%}
 }
-.Test.Active .Slider .Bar
+@keyframes EnterBackward
 {
-    background-color:#FA0;
+    from{left:-100%}
+    to{left:0%}
 }
-.Test.Completed .Bar
+@keyframes ExitForward
 {
-    background-color:#0A0;
+    from{left:0%}
+    to{left:-100%}
+}
+@keyframes ExitBackward
+{
+    from{left:0%}
+    to{left:100%}
 }
