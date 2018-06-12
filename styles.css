@@ -172,6 +172,8 @@ ol li
     text-align:center;
     font-size:10px;
     padding:8px;
+    height:100%;
+    padding:0;
 }
 .Slider
 {
@@ -183,7 +185,6 @@ ol li
     cursor:pointer;
 }
 .Slider .Bar
-{
     position:absolute;
     bottom:0;
     left:0;
@@ -207,7 +208,7 @@ ol li
 }
 .Slide
 {
-    display:block;
+    transition:height 0.3s;
     position:absolute;
     top:0;
     left:-100%;
@@ -237,26 +238,19 @@ ol li
 }
 .Slide.Inactive.Backward
 {
-    animation: ExitBackward ease-out 0.4s;
-    animation-fill-mode: both;
+    background-image:url(WaveHigh.png);
+    background-position-y: center;
 }
-@keyframes EnterForward
+.Test.Low .Bar
 {
-    from{left:100%}
-    to{left:0%}
+    background-image:url(WaveLow.png);
+    background-position-y: center;
 }
-@keyframes EnterBackward
+.Test.Active .Slider .Bar
 {
-    from{left:-100%}
-    to{left:0%}
+    background-color:#FA0;
 }
-@keyframes ExitForward
+.Test.Completed .Bar
 {
-    from{left:0%}
-    to{left:-100%}
-}
-@keyframes ExitBackward
-{
-    from{left:0%}
-    to{left:100%}
+    background-color:#0A0;
 }

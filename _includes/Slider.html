@@ -1,0 +1,16 @@
+<div
+    class="Test {{include.Class}}"
+    ng-class="{'Active':{{include.Test}}.Active, 'Completed':{{include.Test}}.Completed}">
+    <div class="Cap">
+        <span>{[{ {{include.Test}}.Clean() }]}</span>
+        <i class="icon-ok"></i>
+    </div>
+    <div
+        class="Slider Interactive"
+        ng-drag
+        ng-drag-move="{{include.Test}}.HandlerDrag"
+        ng-drag-start="{{include.Test}}.HandlerStart"
+        ng-drag-stop="{{include.Test}}.HandlerStop">
+        <div class="Bar" style="height:{[{ {{include.Test}}.DB*100 }]}%;"></div>
+    </div>
+</div>
