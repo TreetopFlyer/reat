@@ -227,10 +227,9 @@ Drag.Setup = function(inElement)
                 <template slot-scope="Slideshow">
                     
                     <Slide>
-                        <h2>Being your hearing test</h2>
+                        <h2>Begin Earplug Verification Test</h2>
                         <p>
-                            Use the pulldown menu to choose your attenuation level, either 9, 15, or 25 dB. If you are unsure of which filters you have,
-                            you can look at the filter itself. There is a small number indicating the filter level.
+                            This test is to assess the fit of your custom, filtered earplugs. This two-part test should take no longer than 5 - 10 minutes.
                         </p>
                         <div class="Controls">
                             <button v-on:click="Slideshow.Next" onclick="Tone.Context.resume()">Start</button>
@@ -239,7 +238,7 @@ Drag.Setup = function(inElement)
                     <Slide>
                         <h2>Part 1</h2>
                         <p>
-                            Without your hearing protection, place your headphones over your ears in a comfortable position.
+                            Without your hearing protection, place <em><a href="" title="coming soon">cirumaural headphones</a></em> over your ears in a comfortable position.
                         </p>
                         <p>Please confirm before continuing:</p>
                         <ol>
@@ -322,7 +321,12 @@ Drag.Setup = function(inElement)
                                 <td>2nd:</td><td v-for="db in Protected.Results" v-html="db.toFixed(2)"></td>
                             </tr>
                             <tr>
-                                <td>Diff:</td><td v-for="(value, key) in Normal.Results" v-html="(value - Protected.Results[key]).toFixed(2)"></td>
+                                <td>Diff:</td><td v-for="(value, key) in Diff">
+                                    <div v-html="value.Actual"></div>
+                                    <div v-html="value.Expected"></div>
+                                    <div v-html="value.Check"></div>
+                                    <div v-html="value.Label"></div>
+                                </td>
                             </tr>
                         </table>
                         <div class="Controls">
@@ -692,10 +696,10 @@ Drag.Setup = function(inElement)
                 el:"#App",
                 data:{
                     TestFrequencies:[
-                        {Min:-60, Max:0, Steps:100, Hz:4000, Pan:-1},
-                        {Min:-60, Max:0, Steps:100, Hz:4000, Pan:+1},
-                        {Min:-60, Max:0, Steps:100, Hz:250,  Pan:-1},
-                        {Min:-60, Max:0, Steps:100, Hz:250,  Pan:+1}
+                        {Min:-60, Max:0, Steps:60, Hz:4000, Pan:-1},
+                        {Min:-60, Max:0, Steps:60, Hz:4000, Pan:+1},
+                        {Min:-60, Max:0, Steps:60, Hz:250,  Pan:-1},
+                        {Min:-60, Max:0, Steps:60, Hz:250,  Pan:+1}
                     ],
                     Normal:{
                         Protection:0,
@@ -706,7 +710,8 @@ Drag.Setup = function(inElement)
                         Protection:0,
                         Headphones:false,
                         Results:[]
-                    }
+                    },
+                    Diff:[]
                 },
                 methods:{
                     RecordNormal:function(inData)
@@ -718,6 +723,36 @@ Drag.Setup = function(inElement)
                     RecordProtected:function(inData)
                     {
                         this.Protected.Results = inData;
+                        
+                        var output = [];
+                        var i;
+                        var pa;
+                        var check;
+                        for(i=0; i<this.Normal.Results.length; i++)
+                        {
+                            output[i] = {
+                                Actual:Math.abs(this.Protected.Results[i] - this.Normal.Results[i]),
+                                Expected:this.Protected.Protection,
+                                Check:false,
+                                Label:false
+                            };
+                            output[i].Check = Math.abs(output[i].Actual - output[i].Expected);
+                            console.log(i, " actual:", this.Protected.Results[i], "minus", this.Normal.Results[i], "is", output[i].Actual)
+
+                            if(output[i].Check  <= 4)
+                            {
+                                output[i].Label = "green";
+                                continue;
+                            }
+                            if(output[i].Check  >= 6)
+                            {
+                                output[i].Label = "red";
+                                continue;
+                            }
+                            output[i].Label = "yellow";
+                        }
+                        this.Diff = output;
+                        
                         console.log("record protected called", inData);
                         window.parent.postMessage({Event:"RecordProtected", Data:inData}, "*");
                     },
