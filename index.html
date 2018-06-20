@@ -321,8 +321,8 @@ Drag.Setup = function(inElement)
                             </tr>
                             <tr>
                                 <td v-for="(value, key) in Diff" style="text-align:center;">
-                                    <strong v-if="value.Passing"  style="color:#5F0;">Passing</strong>
-                                    <strong v-if="!value.Passing" style="color:#F50;">Check</strong>
+                                    <strong v-if="value.Passing"  style="color:#5F0;">Passing <span v-html="value.Check"></span></strong>
+                                    <strong v-if="!value.Passing" style="color:#F50;">Check <span v-html="value.Check"></span></strong>
                                 </td>
                             </tr>
                         </table>
