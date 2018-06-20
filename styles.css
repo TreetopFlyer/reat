@@ -147,6 +147,7 @@ ol li
 }
 .Frequency .Badge
 {
+    display:none;
     position:absolute;
     top:-10px;
     width:85%;
