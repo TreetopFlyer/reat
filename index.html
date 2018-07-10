@@ -320,9 +320,22 @@ Drag.Setup = function(inElement)
                                 </th>
                             </tr>
                             <tr>
-                                <td v-for="(value, key) in Diff" style="text-align:center;">
-                                    <strong v-if="value.Passing"  style="color:#5F0;">Passing <br/><span v-html="value.Check.toFixed(2)"></span></strong>
-                                    <strong v-if="!value.Passing" style="color:#F50;">Check <br/><span v-html="value.Check.toFixed(2)"></span></strong>
+                                <td v-for="(value, key) in Diff" style="text-align:center; font-size:80%;">
+                                    <hr/>
+                                    Att. Measured:<br>
+                                    <strong v-html="value.Actual.toFixed(2)"></strong><br>
+                                    Att. Expected:<br>
+                                    <strong v-html="value.Expected.toFixed(2)"></strong><br>
+                                    <hr/>
+                                    <strong v-if="value.Passing" style="color:#5F0;">
+                                        <span v-html="value.Check.toFixed(2)"></span><br>
+                                        Passing
+                                    </strong>
+                                    <strong v-if="!value.Passing" style="color:#F50;">
+                                        <span v-html="value.Check.toFixed(2)"></span><br/>
+                                        Check
+                                    </strong>
+                                    
                                 </td>
                             </tr>
                         </table>
@@ -728,13 +741,13 @@ Drag.Setup = function(inElement)
                         for(i=0; i<this.Normal.Results.length; i++)
                         {
                             output[i] = {
-                                Actual:Math.abs(this.Protected.Results[i] - this.Normal.Results[i]),
+                                Actual:this.Protected.Results[i] - this.Normal.Results[i],
                                 Expected:this.Protected.Protection,
                                 Check:false,
                                 Label:false,
                                 Passing:false,
                             };
-                            output[i].Check = Math.abs(output[i].Actual - output[i].Expected);
+                            output[i].Check = output[i].Expected - output[i].Actual;
 
                             if(output[i].Check  <= 4)
                             {
